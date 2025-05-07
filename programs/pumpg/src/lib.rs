@@ -17,6 +17,7 @@ declare_id!("3cNHnRg5bF6ahpkMfwzAV6tFtjeQWywt53M5cGaU3eA4");
 
 #[program]
 pub mod pumpg {
+
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>,) -> Result<()> {
@@ -52,4 +53,19 @@ pub mod pumpg {
             ctx.bumps.bonding_curve
         )
     } 
+
+    pub fn buy(ctx: Context<Buy>, amount: u64, max_sol_cost: u64) -> Result<()> {
+        ctx.accounts.buy_tokens(amount, max_sol_cost)
+    } 
+
+
+    pub fn sell(ctx: Context<Sell>, amount: u64, min_sol_output: u64) -> Result<()> {
+        ctx.accounts.sell_tokens(amount, min_sol_output)
+    }
+
+    pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
+        ctx.accounts.withdraw_funds()
+    }
+
+
 }

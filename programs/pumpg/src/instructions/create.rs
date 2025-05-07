@@ -17,6 +17,7 @@ use crate::events::TokenCreated;
 pub struct Create<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
+
     #[account(
         init,
         payer = payer,
@@ -52,6 +53,7 @@ pub struct Create<'info> {
     pub system_program: Program<'info, System>,
 }
 
+
 impl<'info> Create<'info> {
     pub fn create_token(&mut self, name: String, symbol: String, uri: String, bump:u8) -> Result<()> {
         // Create metadata
@@ -59,7 +61,7 @@ impl<'info> Create<'info> {
         let seeds = &[
             &b"bonding-curve"[..],
             &self.mint.key().to_bytes()[..],
-            &[bump],
+            &[bump],  // self.bumps.bonding_curve,
         ];
 
         let signer_seeds = &[&seeds[..]];
@@ -164,7 +166,9 @@ impl<'info> Create<'info> {
             complete: false,
             total_tokens_sold: 0,
             total_lamports_spent: 0,
-            bump,
+            initializer: self.payer.key(),
+            bump, // self.bumps.bonding_curve,
+            _padding: [0; 7],
         });
 
         emit!(TokenCreated {

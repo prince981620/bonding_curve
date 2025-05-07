@@ -24,17 +24,26 @@ pub const COMPLETION_LAMPORTS: u64 = 85 * LAMPORTS_PER_SOL; // ~ 85 SOL
 */
 
 
-pub fn compute_S(T: u64) -> u64 {
+pub fn compute_S(T: u64) -> Result<u64, Errors> {
+
     let p_scaled: u128 = (P as u128) * (SCALE as u128);
+
     let denominator: u128 = p_scaled - (T as u128);
 
     if denominator == 0 {
         return Err(Errors::InvalidCalculation.into());
     }
 
-    let numerator: 128 = (Q as )
+    let numerator: u128 = (Q as u128) * (SCALE as u128);
 
+    let part1: u128 = numerator / denominator;
 
+    let S: u128 = part1
+        .checked_mul(LAMPORTS_PER_SOL as u128)
+        .ok_or(Errors::Overflow)?
+        .checked_sub((R as u128) * (LAMPORTS_PER_SOL as u128))
+        .ok_or(Errors::Underflow)?;
 
+    Ok(S as u64)
 
 }

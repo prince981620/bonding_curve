@@ -1,3 +1,5 @@
+use anchor_lang::{prelude::Pubkey, pubkey};
+
 
 pub const P: u64 = 1_073_000_191; // inital_virtual_token
 pub const R: u64 = 30; //initial_virtual_sol
@@ -12,6 +14,14 @@ pub const TOTAL_SUPPLY: u64 = 1_000_000_000 * SCALE; // 1 billion tokens
 pub const BONDING_CURVE_SUPPLY: u64 = 793_100_000 * SCALE; // total supply of bonding curve tokens
 
 pub const COMPLETION_LAMPORTS: u64 = 85 * LAMPORTS_PER_SOL; // ~ 85 SOL
+
+pub const ADMIN: Pubkey = pubkey!("bioJ9JTqW62MLz7UKHU69gtKhPpGi1BQhccj2kmSvUJ");
+
+pub const GLOBAL: &[u8] = b"global";
+
+pub const BONDING_CURVE : &[u8] = b"bonding_curve";
+
+pub const MIGRATION_FEE : u64 = 6 * LAMPORTS_PER_SOL; // 6 SOL
 
 
 /*

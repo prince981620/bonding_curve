@@ -14,3 +14,4 @@ pub struct Global {
     pub accumulated_fees: u64,
     pub bump: u8
 }
+// passed

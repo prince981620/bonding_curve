@@ -28,15 +28,15 @@ pub mod pumpg {
 
     pub fn set_params(
         ctx: Context<SetParams>,
-        fee_recipient: Pubkey,
-        initial_virtual_token_reserves: u64,
-        initial_virtual_sol_reserves: u64,
-        initial_real_token_reserves: u64,
-        token_total_supply: u64,
-        fee_basis_points: u64,
+        fee_recipient: Option<Pubkey>,
+        initial_virtual_token_reserves: Option<u64>,
+        initial_virtual_sol_reserves: Option<u64>,
+        initial_real_token_reserves: Option<u64>,
+        token_total_supply: Option<u64>,
+        fee_basis_points: Option<u64>,
     ) -> Result<()> {
         ctx.accounts.set_parameters(
-            fee_recipient,
+            fee_recipient, 
             initial_virtual_token_reserves,
             initial_virtual_sol_reserves,
             initial_real_token_reserves,

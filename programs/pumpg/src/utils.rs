@@ -26,24 +26,42 @@ pub const COMPLETION_LAMPORTS: u64 = 85 * LAMPORTS_PER_SOL; // ~ 85 SOL
 
 pub fn compute_S(T: u64) -> Result<u64, Errors> {
 
-    let p_scaled: u128 = (P as u128) * (SCALE as u128);
+    let p_u128 = u128::try_from(P).or(Err(Errors::Overflow))?;
 
-    let denominator: u128 = p_scaled - (T as u128);
+    let scale_u128 = u128::try_from(SCALE).or(Err(Errors::Overflow))?;
+
+    let p_scaled: u128 = p_u128.checked_mul(scale_u128).ok_or(Errors::Overflow)?;
+
+    // let delta_S128 = u128::try_from(delta_S).or(Err(Errors::Overflow))?;
+
+    let t_u128 = u128::try_from(T).or(Err(Errors::Overflow))?;
+
+
+    let denominator: u128 = p_scaled.checked_sub(t_u128).ok_or(Errors::Overflow)?;
 
     if denominator == 0 {
         return Err(Errors::InvalidCalculation.into());
     }
 
-    let numerator: u128 = (Q as u128) * (SCALE as u128);
+    let q_u128 = u128::try_from(Q).or(Err(Errors::Overflow))?;
 
-    let part1: u128 = numerator / denominator;
+    let numerator: u128 = q_u128.checked_mul(p_scaled).ok_or(Errors::Overflow)?;
+
+    let part1: u128 = numerator.checked_div(denominator).ok_or(Errors::Overflow)?;
+
+    let r_u128 = u128::try_from(R).or(Err(Errors::Overflow))?;
+
+    let lamports_per_sol_u128 = u128::try_from(LAMPORTS_PER_SOL).or(Err(Errors::Overflow))?;
 
     let S: u128 = part1
-        .checked_mul(LAMPORTS_PER_SOL as u128)
+        .checked_mul(lamports_per_sol_u128)
         .ok_or(Errors::Overflow)?
-        .checked_sub((R as u128) * (LAMPORTS_PER_SOL as u128))
+        .checked_sub(r_u128.checked_mul(lamports_per_sol_u128).unwrap()) // check and change this 
         .ok_or(Errors::Underflow)?;
-
+    
     Ok(S as u64)
 
 }
+
+//  recheck bonding curve formula
+// cpmm to radium 

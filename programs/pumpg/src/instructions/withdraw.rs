@@ -7,44 +7,47 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{bonding_curve, compute_S, errors::Errors, BondingCurve, FundsWithdrawn, Global, TokenSold, COMPLETION_LAMPORTS};
+use crate::{bonding_curve, compute_S, errors::Errors, BondingCurve, FundsWithdrawn, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL, MIGRATION_FEE};
 
 #[derive(Accounts)]
 pub struct Withdraw  <'info> {
-    pub user: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [b"global"],
+        seeds = [GLOBAL],
         bump = global.bump,
+        has_one = authority,
+        has_one = fee_recipient,
     )]
     pub global: Account<'info, Global>,
 
-    /// CHECK: we explicitly verify below in `buy_tokens()` that
-    /// the provided key equals `global.fee_recipient`
     #[account(
         mut,
     )]
-    pub fee_recipient: AccountInfo<'info>,
+    pub fee_recipient: SystemAccount<'info>,
 
     #[account(
         mut,
-        seeds = [b"bonding-curve", mint.key().as_ref()],
+        seeds = [BONDING_CURVE, bonding_curve.mint.key().as_ref()],
         bump = bonding_curve.bump,
+        has_one = mint,
+        constraint = matches!(bonding_curve.complete, false) @ Errors::BondingCurveComplete,
     )]
     pub bonding_curve: Account<'info, BondingCurve>,
 
     #[account(
         mut,
         associated_token::mint = mint,
-        associated_token::authority = user,
+        associated_token::authority = bonding_curve,
     )]
     pub bonding_curve_ata: Account<'info, TokenAccount>,
 
     #[account(
         mut,
-        associated_token::mint = mint,
-        associated_token::authority = user,
+        token::mint = mint,
+        token::authority = authority,
+        token::token_program = token_program    
     )]
     pub user_ata: Account<'info, TokenAccount>,
 
@@ -58,14 +61,7 @@ pub struct Withdraw  <'info> {
 impl <'info> Withdraw <'info> {
     pub fn withdraw_funds(&mut self) -> Result<()> {
 
-        let bonding_curve = &mut self.bonding_curve;
         
-        if !bonding_curve.complete {
-            return Err(Errors::BondingCurveNotComplete.into());
-        }
-        if *self.user.key != self.global.authority {
-            return Err(Errors::NotAuthorized.into());
-        }
 
         let remaining_tokens = self.bonding_curve_ata.amount;
 
@@ -73,7 +69,7 @@ impl <'info> Withdraw <'info> {
 
         emit!(FundsWithdrawn {
             mint: self.mint.key(),
-            user: self.user.key(),
+            user: self.authority.key(),
             tokens_withdrawn: remaining_tokens,
             sol_withdrawn: remaining_sol,
         });
@@ -84,17 +80,17 @@ impl <'info> Withdraw <'info> {
     pub fn withdraw_sol (&mut self) -> Result<()> {
         let sol_amount = self.bonding_curve.get_lamports();
 
-        let platform_fee = 6_000_000_000; // 6 SOL
+        // let platform_fee = 6_000_000_000; // 6 SOL
 
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
         let cpi_accounts = Transfer {
             from: self.bonding_curve.to_account_info(),
-            to: self.user.to_account_info(),
+            to: self.authority.to_account_info(),
         };
 
         let seeds = &[
-            &b"bonding-curve"[..],
+            &BONDING_CURVE[..],
             &self.mint.key().to_bytes()[..],
             &[self.bonding_curve.bump],
         ];
@@ -103,7 +99,7 @@ impl <'info> Withdraw <'info> {
 
         let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
-        transfer(ctx, sol_amount.checked_sub(platform_fee).unwrap())?;
+        transfer(ctx, sol_amount.checked_sub(MIGRATION_FEE).ok_or(Errors::Underflow)?)?;
 
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
@@ -112,17 +108,9 @@ impl <'info> Withdraw <'info> {
             to: self.fee_recipient.to_account_info(),
         };
 
-        let seeds = &[
-            &b"bonding-curve"[..],
-            &self.mint.key().to_bytes()[..],
-            &[self.bonding_curve.bump],
-        ];
+        let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
-        let signer_seeds = &[&seeds[..]];
-
-        let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts,signer_seeds);
-
-        transfer(ctx, platform_fee)
+        transfer(ctx, MIGRATION_FEE)
 
     }
 

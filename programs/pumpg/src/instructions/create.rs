@@ -22,26 +22,28 @@ pub struct Create<'info> {
         init,
         payer = payer,
         mint::decimals = 6,
-        mint::authority = bonding_curve
+        mint::authority = bonding_curve,
+        mint::token_program = token_program,
     )]
     pub mint: Account<'info, Mint>,
     #[account(
         init,
         payer = payer,
         space = 8 + BondingCurve::INIT_SPACE,
-        seeds = [b"boding-curve", mint.key().as_ref()],
+        seeds = [BONDING_CURVE, mint.key().as_ref()],
         bump
     )]
     pub bonding_curve: Account<'info, BondingCurve>,
+    
     #[account(
         init,
         payer = payer,
         associated_token::mint = mint,
         associated_token::authority = bonding_curve
     )]
-    pub bonding_curve_ata: Account<'info, TokenAccount>,
+    pub bonding_curve_ata: Account<'info, TokenAccount>, // this will stroe the mint tokens
 
-    #[account(seeds = [b"global"], bump=global.bump)]
+    #[account(seeds = [GLOBAL], bump=global.bump)]
     pub global: Account<'info, Global>,
     /// CHECK: New Metaplex Account being created
     #[account(mut)]
@@ -61,7 +63,7 @@ impl<'info> Create<'info> {
         let seeds = &[
             &b"bonding-curve"[..],
             &self.mint.key().to_bytes()[..],
-            &[bump],  // self.bumps.bonding_curve,
+            &[bump],
         ];
 
         let signer_seeds = &[&seeds[..]];
@@ -105,31 +107,6 @@ impl<'info> Create<'info> {
         )
         .invoke_signed(signer_seeds)?;
     
-        // CreateMetadataAccountV3CpiBuilder::new(&self.mpl_metadata_program)
-        //     .metadata(&self.metadata)
-        //     .mint(&self.mint)
-        //     .mint_authority(&self.bonding_curve)
-        //     .payer(&self.payer)
-        //     .update_authority(&self.bonding_curve, true)
-        //     .system_program(&self.system_program)
-        //     .is_mutable(true)
-        //     .rent(Some(&self.rent))
-        //     .data(DataV2 {
-        //         name,
-        //         symbol,
-        //         uri,
-        //         seller_fee_basis_points: 0,
-        //         creators: None,
-        //         collection: None,
-        //         uses: None,
-        //     })
-        //     .invoke_signed(&[&[
-        //         BondingCurve::SEED,
-        //         self.mint.key().as_ref(),
-        //         &[self.bumps.bonding_curve],
-        //     ]])?;
-
-        // Mint tokens
         token::mint_to(
             CpiContext::new_with_signer(
                 self.token_program.to_account_info(),
@@ -140,7 +117,7 @@ impl<'info> Create<'info> {
                 },
                 signer_seeds, // check if it need same signer
             ),
-            TOTAL_SUPPLY,
+            self.global.token_total_supply,
         )?;
 
         // Revoke mint authority
@@ -158,6 +135,7 @@ impl<'info> Create<'info> {
         )?;
 
         self.bonding_curve.set_inner(BondingCurve {
+            mint: self.mint.key(),
             virtual_token_reserve: self.global.initial_virtual_token_reserves,
             virtual_sol_reserve: self.global.initial_virtual_sol_reserves,
             real_token_reserve: self.global.initial_real_token_reserves,
@@ -167,7 +145,7 @@ impl<'info> Create<'info> {
             total_tokens_sold: 0,
             total_lamports_spent: 0,
             initializer: self.payer.key(),
-            bump, // self.bumps.bonding_curve,
+            bump,
             _padding: [0; 7],
         });
 

@@ -9,11 +9,14 @@ pub struct Initialize<'info> {
         init,
         payer = user,
         space = 8 + Global::INIT_SPACE,
-        seeds = [b"global"],
+        seeds = [GLOBAL],
         bump,
     )]
     pub global: Account<'info, Global>,
-    #[account(mut)]
+    #[account(
+        mut,
+        address = ADMIN
+    )]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }

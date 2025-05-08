@@ -7,7 +7,7 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{bonding_curve, compute_S, errors::Errors, BondingCurve, Global, TokenSold, COMPLETION_LAMPORTS};
+use crate::{bonding_curve, compute_S, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Sell <'info> {
@@ -15,22 +15,23 @@ pub struct Sell <'info> {
 
     #[account(
         mut,
-        seeds = [b"global"],
+        seeds = [GLOBAL],
         bump = global.bump,
     )]
     pub global: Account<'info, Global>,
 
-    /// CHECK: we explicitly verify below in `buy_tokens()` that
-    /// the provided key equals `global.fee_recipient`
     #[account(
         mut,
+        constraint = fee_recipient.key() == global.fee_recipient.key(),
     )]
-    pub fee_recipient: AccountInfo<'info>,
+    pub fee_recipient: SystemAccount<'info>,
 
     #[account(
         mut,
-        seeds = [b"bonding-curve", mint.key().as_ref()],
+        seeds = [BONDING_CURVE, bonding_curve.mint.key().as_ref()],
         bump = bonding_curve.bump,
+        has_one = mint,
+        constraint = matches!(bonding_curve.complete, false) @ Errors::BondingCurveComplete,
     )]
     pub bonding_curve: Account<'info, BondingCurve>,
 
@@ -43,8 +44,9 @@ pub struct Sell <'info> {
 
     #[account(
         mut,
-        associated_token::mint = mint,
-        associated_token::authority = user,
+        token::mint = mint,
+        token::authority = user,
+        token::token_program = token_program    
     )]
     pub user_ata: Account<'info, TokenAccount>,
 
@@ -57,24 +59,35 @@ pub struct Sell <'info> {
 
 impl <'info> Sell<'info> {
     pub fn sell_tokens(&mut self, amount: u64, min_sol_output: u64) -> Result<()> {
+
+        require!(amount > 0 && amount <= u64::MAX, Errors::Overflow);
+
+        require!(min_sol_output > 0 , Errors::Overflow);
+
+        // check slippage
+        // calculate the varient before and after swap
+  
         let bonding_curve: &mut Account<'info, BondingCurve> = &mut self.bonding_curve;
 
-        if bonding_curve.complete {
-            return Err(Errors::BondingCurveComplete.into());
-        }
-        
-        if self.fee_recipient.key() != self.global.fee_recipient.key() {
-            return Err(Errors::InvalidFeeAccount.into());
-        }
+        // if bonding_curve.complete {
+        //     return Err(Errors::BondingCurveComplete.into());
+        // }
 
         let T_current = bonding_curve.total_tokens_sold;
         let T_new = T_current.checked_sub(amount).ok_or(Errors::Underflow)?;
         let S_new = compute_S(T_new)?;
         let S_current = bonding_curve.total_lamports_spent;
         let delta_S = S_current.checked_sub(S_new).ok_or(Errors::Underflow)?;
+
+        //  check if s_new is ever greater than s_current 
+         
+        let delta_S128 = u128::try_from(delta_S).or(Err(Errors::Overflow))?;
+
         if delta_S < min_sol_output {
             return Err(Errors::TooLittleSolReceived.into());
         }
+
+        // u128::try_from(delta_S) 
 
         let fee_amount = (delta_S as u128 * self.global.fee_basis_points as u128 / 10_000)
             .try_into()
@@ -169,6 +182,7 @@ impl <'info> Sell<'info> {
         let bonding_curve = &mut self.bonding_curve;
 
         bonding_curve.set_inner(BondingCurve {
+            mint: bonding_curve.mint,
             virtual_token_reserve: bonding_curve.virtual_token_reserve + amount,
             virtual_sol_reserve: bonding_curve.virtual_sol_reserve - delta_S_after_fee,
             real_token_reserve: bonding_curve.real_token_reserve + amount,

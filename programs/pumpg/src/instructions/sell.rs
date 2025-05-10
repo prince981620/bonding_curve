@@ -7,7 +7,7 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{bonding_curve, compute_s, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, CURVE_VAULT, GLOBAL};
+use crate::{compute_s, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, CURVE_VAULT, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Sell <'info> {
@@ -81,33 +81,33 @@ impl <'info> Sell<'info> {
         //     return Err(Errors::BondingCurveComplete.into());
         // }
 
-        let T_current = bonding_curve.total_tokens_sold;
-        let T_new = T_current.checked_sub(amount).ok_or(Errors::Underflow)?;
-        let S_new = compute_s(T_new)?;
-        let S_current = bonding_curve.total_lamports_spent;
-        let delta_S = S_current.checked_sub(S_new).ok_or(Errors::Underflow)?;
+        let t_current = bonding_curve.total_tokens_sold;
+        let t_new = t_current.checked_sub(amount).ok_or(Errors::Underflow)?;
+        let s_new = compute_s(t_new)?;
+        let s_current = bonding_curve.total_lamports_spent;
+        let delta_s = s_current.checked_sub(s_new).ok_or(Errors::Underflow)?;
 
         //  check if s_new is ever greater than s_current 
          
-        // let delta_S128 = u128::try_from(delta_S).or(Err(Errors::Overflow))?;
+        // let delta_S128 = u128::try_from(delta_s).or(Err(Errors::Overflow))?;
 
-        if delta_S < min_sol_output {
+        if delta_s < min_sol_output {
             return Err(Errors::TooLittleSolReceived.into());
         }
 
-        // u128::try_from(delta_S) 
+        // u128::try_from(delta_s) 
 
-        let fee_amount = (delta_S as u128 * self.global.fee_basis_points as u128 / 10_000)
+        let fee_amount = (delta_s as u128 * self.global.fee_basis_points as u128 / 10_000)
             .try_into()
             .map_err(|_| Errors::InvalidCalculation)?;
-        let delta_S_after_fee = delta_S.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
+        let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
 
         self.send_token(amount)?;
 
-        self.send_sol(delta_S_after_fee)?;
+        self.send_sol(delta_s_after_fee)?;
 
 
-        self.update_bonding_curve(delta_S_after_fee, amount, S_new, T_new)?;
+        self.update_bonding_curve(delta_s_after_fee, amount, s_new, t_new)?;
 
         
 
@@ -115,7 +115,7 @@ impl <'info> Sell<'info> {
             mint: self.mint.key(),
             user: self.user.key(),
             amount,
-            sol_received: delta_S_after_fee,
+            sol_received: delta_s_after_fee,
             fee: fee_amount,
         });
         
@@ -178,19 +178,19 @@ impl <'info> Sell<'info> {
 
     }
 
-    pub fn update_bonding_curve(&mut self, delta_S_after_fee: u64, amount: u64, S_new: u64, T_new: u64) -> Result<()> {
+    pub fn update_bonding_curve(&mut self, delta_s_after_fee: u64, amount: u64, s_new: u64, t_new: u64) -> Result<()> {
         let bonding_curve = &mut self.bonding_curve;
 
         bonding_curve.set_inner(BondingCurve {
             mint: bonding_curve.mint,
             virtual_token_reserve: bonding_curve.virtual_token_reserve + amount,
-            virtual_sol_reserve: bonding_curve.virtual_sol_reserve - delta_S_after_fee,
+            virtual_sol_reserve: bonding_curve.virtual_sol_reserve - delta_s_after_fee,
             real_token_reserve: bonding_curve.real_token_reserve + amount,
-            real_sol_reserve: bonding_curve.real_sol_reserve - delta_S_after_fee,
+            real_sol_reserve: bonding_curve.real_sol_reserve - delta_s_after_fee,
             token_total_supply: bonding_curve.token_total_supply,
-            complete: bonding_curve.complete,
-            total_tokens_sold: T_new,
-            total_lamports_spent: S_new,
+            complete: s_new >= COMPLETION_LAMPORTS,
+            total_tokens_sold: t_new,
+            total_lamports_spent: s_new,
             initializer: bonding_curve.initializer,
             bump: bonding_curve.bump,
             vault_bump: bonding_curve.vault_bump,

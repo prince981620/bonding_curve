@@ -85,26 +85,26 @@ impl <'info> Buy <'info> {
         // }
         
 
-        let T_current = bonding_curve.total_tokens_sold;
-        let T_new = T_current.checked_add(amount).ok_or(Errors::Overflow)?;
+        let t_current = bonding_curve.total_tokens_sold;
+        let t_new = t_current.checked_add(amount).ok_or(Errors::Overflow)?;
 
-        if T_new > bonding_curve.real_token_reserve {
+        if t_new > bonding_curve.real_token_reserve {
             return Err(Errors::InsufficientTokens.into());
         }
 
-        let S_new = compute_s(T_new)?;
-        let S_current = bonding_curve.total_lamports_spent;
-        let delta_S = S_new.checked_sub(S_current).ok_or(Errors::Underflow)?;
-        if delta_S > max_sol_cost {
+        let s_new = compute_s(t_new)?;
+        let s_current = bonding_curve.total_lamports_spent;
+        let delta_s = s_new.checked_sub(s_current).ok_or(Errors::Underflow)?;
+        if delta_s > max_sol_cost {
             return Err(Errors::TooMuchSolRequired.into());
         }
 
-        let fee_amount = (delta_S as u128 * self.global.fee_basis_points as u128 / 10_000)
+        let fee_amount = (delta_s as u128 * self.global.fee_basis_points as u128 / 10_000)
             .try_into()
             .map_err(|_| Errors::InvalidCalculation)?;
-        let delta_S_after_fee = delta_S.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
+        let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
 
-        self.send_sol(delta_S)?;
+        self.send_sol(delta_s)?;
 
         self.send_token(amount)?;
 
@@ -112,14 +112,14 @@ impl <'info> Buy <'info> {
             self.bonding_curve.complete = true;
         }
 
-        self.update_bonding_curve(delta_S_after_fee, amount, S_new, T_new)?;
+        self.update_bonding_curve(delta_s_after_fee, amount, s_new, t_new)?;
 
         
         emit!(TokenPurchased {
             mint: self.mint.key(),
             user: self.user.key(),
             amount,
-            sol_spent: delta_S,
+            sol_spent: delta_s,
             fee: fee_amount,
         });
         
@@ -189,19 +189,19 @@ impl <'info> Buy <'info> {
 
     }
 
-    pub fn update_bonding_curve(&mut self, delta_S_after_fee: u64, amount: u64, S_new: u64, T_new: u64) -> Result<()> {
+    pub fn update_bonding_curve(&mut self, delta_s_after_fee: u64, amount: u64, s_new: u64, t_new: u64) -> Result<()> {
         let bonding_curve = &mut self.bonding_curve;
 
         bonding_curve.set_inner(BondingCurve {
             mint: bonding_curve.mint,
             virtual_token_reserve: bonding_curve.virtual_token_reserve - amount,
-            virtual_sol_reserve: bonding_curve.virtual_sol_reserve + delta_S_after_fee,
+            virtual_sol_reserve: bonding_curve.virtual_sol_reserve + delta_s_after_fee,
             real_token_reserve: bonding_curve.real_token_reserve - amount,
-            real_sol_reserve: bonding_curve.real_sol_reserve + delta_S_after_fee,
+            real_sol_reserve: bonding_curve.real_sol_reserve + delta_s_after_fee,
             token_total_supply: bonding_curve.token_total_supply,
-            complete: S_new >= COMPLETION_LAMPORTS,
-            total_tokens_sold: T_new,
-            total_lamports_spent: S_new,
+            complete: s_new >= COMPLETION_LAMPORTS,
+            total_tokens_sold: t_new,
+            total_lamports_spent: s_new,
             initializer: bonding_curve.initializer,
             bump: bonding_curve.bump,
             vault_bump: bonding_curve.vault_bump,

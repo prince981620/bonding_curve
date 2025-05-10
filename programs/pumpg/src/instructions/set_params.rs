@@ -1,8 +1,7 @@
 use anchor_lang::prelude::*;
-use crate::errors::Errors;
 use crate::state::Global;
 use crate::events::ParamsSet;
-use crate::{GLOBAL};
+use crate::GLOBAL;
 
 #[derive(Accounts)]
 pub struct SetParams<'info> {
@@ -31,9 +30,6 @@ impl<'info> SetParams<'info> {
         token_total_supply: Option<u64>,
         fee_basis_points: Option<u64>,
     ) -> Result<()> {
-
-        //  
-        let global = &mut self.global;
 
         self.global.fee_recipient = fee_recipient.unwrap_or(self.global.fee_recipient);
         self.global.initial_virtual_token_reserves = initial_virtual_token_reserves.unwrap_or(self.global.initial_virtual_token_reserves);

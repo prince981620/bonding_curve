@@ -88,6 +88,49 @@ describe("pumpg", async () => {
   let admin_ata: PublicKey;
 
   const mintadd = Keypair.generate();
+  
+  let listenerIds: number[] = [];
+
+  before(()=> {
+
+    const InitializedListner = program.addEventListener("initialized", (event, slot, signature) => {
+      console.log("Initialized Event :", event, "Slot :", slot, "signature:", signature);
+    });
+
+    listenerIds.push(InitializedListner);
+
+    const createEventListner = program.addEventListener("tokenCreated", (event, slot, signature) => {
+      console.log("tokenCreated Event :", event, "Slot :", slot, "signature:", signature);
+    });
+
+    listenerIds.push(createEventListner);
+
+    const purchasedEvent = program.addEventListener("tokenPurchased", (event, slot, signature) => {
+      console.log("tokenPurchased Event :", event, "Slot :", slot, "signature:", signature);
+    });
+
+    listenerIds.push(purchasedEvent);
+
+    const sellEventListner = program.addEventListener("tokenSold", (event, slot, signature) => {
+      console.log("tokenSold Event :", event, "Slot :", slot, "signature:", signature);
+    });
+
+    listenerIds.push(sellEventListner);
+
+
+
+    const paramsSetEventListner = program.addEventListener("paramsSet", (event, slot, signature) => {
+      console.log("paramsSet Event :", event, "Slot :", slot, "signature:", signature);
+    });
+
+    listenerIds.push(paramsSetEventListner);
+
+    const fundsWithdrawnEventListner = program.addEventListener("fundsWithdrawn", (event, slot, signature) => {
+      console.log("fundsWithdrawn Event :", event, "Slot :", slot, "signature:", signature);
+    });
+
+    listenerIds.push(fundsWithdrawnEventListner);
+  })
 
   it("Airdrop and create Mints", async()=>{
 
@@ -244,8 +287,8 @@ describe("pumpg", async () => {
     //   await provider.connection.getTokenAccountBalance(bonding_curve_ata);
 
 
-    const amount = new anchor.BN(426_640_159_000_000); // 1 M token as decimal = 6
-    const maxsolcost = new anchor.BN(20_000_000_000); // 1 sol
+    const amount = new anchor.BN(66_930_000_000_000); // 1 M token as decimal = 6
+    const maxsolcost = new anchor.BN(2_000_000_000); // 1 sol
     const tx = await program.methods.buy(
       amount,
       maxsolcost
@@ -290,7 +333,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of dev tx")
   })
 
-  xit("buyer1 buy coin", async ()=> {
+  it("buyer1 buy coin", async ()=> {
 
     const buyer1_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -365,7 +408,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of buyer1 tx")
   })
 
-  xit("buyer2 buy coin", async ()=> {
+  it("buyer2 buy coin", async ()=> {
 
     const buyer2_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -441,7 +484,7 @@ describe("pumpg", async () => {
 
   })
 
-  xit("Dev sell all", async ()=>{
+  it("Dev sell all", async ()=>{
     const initalSOl = await connection.getBalance(coindev.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -496,7 +539,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  xit("buyer 2 sell all", async ()=>{
+  it("buyer 2 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer2.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -551,7 +594,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  xit("buyer1 sell all", async ()=>{
+  it("buyer1 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -720,7 +763,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
-  it("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
+  xit("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
 
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
@@ -771,5 +814,12 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
+
+
+  after("cleanup event listeners", async () => {
+    for (const id of listenerIds) {
+      await program.removeEventListener(id);
+    }
+  });
  
 });

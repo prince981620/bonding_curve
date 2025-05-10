@@ -7,10 +7,11 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{bonding_curve, compute_S, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL};
+use crate::{bonding_curve, compute_s, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Sell <'info> {
+    #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
@@ -38,7 +39,7 @@ pub struct Sell <'info> {
     #[account(
         mut,
         associated_token::mint = mint,
-        associated_token::authority = user,
+        associated_token::authority = bonding_curve,
     )]
     pub bonding_curve_ata: Account<'info, TokenAccount>,
 
@@ -75,13 +76,13 @@ impl <'info> Sell<'info> {
 
         let T_current = bonding_curve.total_tokens_sold;
         let T_new = T_current.checked_sub(amount).ok_or(Errors::Underflow)?;
-        let S_new = compute_S(T_new)?;
+        let S_new = compute_s(T_new)?;
         let S_current = bonding_curve.total_lamports_spent;
         let delta_S = S_current.checked_sub(S_new).ok_or(Errors::Underflow)?;
 
         //  check if s_new is ever greater than s_current 
          
-        let delta_S128 = u128::try_from(delta_S).or(Err(Errors::Overflow))?;
+        // let delta_S128 = u128::try_from(delta_S).or(Err(Errors::Overflow))?;
 
         if delta_S < min_sol_output {
             return Err(Errors::TooLittleSolReceived.into());
@@ -96,7 +97,7 @@ impl <'info> Sell<'info> {
 
         self.send_token(amount)?;
 
-        self.send_sol(min_sol_output)?;
+        self.send_sol(delta_S)?;
 
 
         self.update_bonding_curve(delta_S_after_fee, amount, S_new, T_new)?;
@@ -130,8 +131,8 @@ impl <'info> Sell<'info> {
         };
 
         let seeds = &[
-            &b"bonding-curve"[..],
-            &self.mint.key().to_bytes()[..],
+            BONDING_CURVE,
+            &self.mint.to_account_info().key.as_ref(),
             &[self.bonding_curve.bump],
         ];
 
@@ -148,14 +149,6 @@ impl <'info> Sell<'info> {
             to: self.fee_recipient.to_account_info(),
         };
 
-        let seeds = &[
-            &b"bonding-curve"[..],
-            &self.mint.key().to_bytes()[..],
-            &[self.bonding_curve.bump],
-        ];
-
-        let signer_seeds = &[&seeds[..]];
-
         let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts,signer_seeds);
 
         transfer(ctx, platform_fee)
@@ -169,7 +162,7 @@ impl <'info> Sell<'info> {
             from: self.user_ata.to_account_info(),
             mint: self.mint.to_account_info(),
             to: self.bonding_curve_ata.to_account_info(),
-            authority: self.bonding_curve.to_account_info(),
+            authority: self.user.to_account_info(),
         };
 
         let ctx = CpiContext::new(cpi_program, cpi_account);

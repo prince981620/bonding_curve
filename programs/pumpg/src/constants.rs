@@ -15,7 +15,7 @@ pub const BONDING_CURVE_SUPPLY: u64 = 793_100_000 * SCALE; // total supply of bo
 
 pub const COMPLETION_LAMPORTS: u64 = 85 * LAMPORTS_PER_SOL; // ~ 85 SOL
 
-pub const ADMIN: Pubkey = pubkey!("bioJ9JTqW62MLz7UKHU69gtKhPpGi1BQhccj2kmSvUJ");
+pub const ADMIN: Pubkey = pubkey!("DKbqMnDju2ftYBKM65DhPMLi7foVt5QPmbCmeeTk5eSN");
 
 pub const GLOBAL: &[u8] = b"global";
 

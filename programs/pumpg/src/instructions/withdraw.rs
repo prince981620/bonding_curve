@@ -7,7 +7,7 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{bonding_curve, compute_S, errors::Errors, BondingCurve, FundsWithdrawn, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL, MIGRATION_FEE};
+use crate::{bonding_curve, compute_s, errors::Errors, BondingCurve, FundsWithdrawn, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL, MIGRATION_FEE};
 
 #[derive(Accounts)]
 pub struct Withdraw  <'info> {

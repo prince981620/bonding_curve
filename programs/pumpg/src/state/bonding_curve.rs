@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-
+#[derive(InitSpace)]
 #[account]
 pub struct BondingCurve {
     pub mint: Pubkey,
@@ -17,6 +17,6 @@ pub struct BondingCurve {
     pub _padding: [u8; 7],
 }
 
-impl BondingCurve {
-    pub const INIT_SPACE: usize = 8 + 8 + 8 + 8 + 8 + 1 + 8 + 8 + 32 + 1 + 7;
-}
+// impl BondingCurve {
+//     pub const INIT_SPACE: usize = 8 + 8 + 8 + 8 + 8 + 1 + 8 + 8 + 32 + 1 + 7;
+// }

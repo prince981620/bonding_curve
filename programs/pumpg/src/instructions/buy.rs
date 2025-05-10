@@ -7,10 +7,12 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{bonding_curve, compute_S, errors::Errors, BondingCurve, Global, TokenPurchased, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL};
+use crate::{compute_s, errors::Errors, BondingCurve, Global, TokenPurchased, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Buy <'info> {
+    
+    #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
@@ -25,6 +27,13 @@ pub struct Buy <'info> {
         constraint = fee_recipient.key() == global.fee_recipient.key(),
     )]
     pub fee_recipient: SystemAccount<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"vault", bonding_curve.mint.key().as_ref()], // PDA seeds for the vault.
+        bump, // Bump seed for the vault PDA.
+    )]
+    pub vault: SystemAccount<'info>,
 
     #[account(
         mut,
@@ -78,11 +87,12 @@ impl <'info> Buy <'info> {
 
         let T_current = bonding_curve.total_tokens_sold;
         let T_new = T_current.checked_add(amount).ok_or(Errors::Overflow)?;
+
         if T_new > bonding_curve.real_token_reserve {
             return Err(Errors::InsufficientTokens.into());
         }
 
-        let S_new = compute_S(T_new)?;
+        let S_new = compute_s(T_new)?;
         let S_current = bonding_curve.total_lamports_spent;
         let delta_S = S_new.checked_sub(S_current).ok_or(Errors::Underflow)?;
         if delta_S > max_sol_cost {
@@ -96,7 +106,7 @@ impl <'info> Buy <'info> {
 
         self.send_sol(delta_S)?;
 
-        self.send_token(T_new)?;
+        self.send_token(amount)?;
 
         if self.bonding_curve.real_sol_reserve > COMPLETION_LAMPORTS {
             self.bonding_curve.complete = true;
@@ -135,7 +145,7 @@ impl <'info> Buy <'info> {
 
         let cpi_accounts = Transfer {
             from: self.user.to_account_info(),
-            to: self.bonding_curve.to_account_info(),
+            to: self.vault.to_account_info(),
         };
 
         let ctx = CpiContext::new(cpi_program, cpi_accounts);
@@ -166,8 +176,8 @@ impl <'info> Buy <'info> {
         };
 
         let seeds = &[
-            &b"bonding-curve"[..],
-            &self.mint.key().to_bytes()[..],
+            BONDING_CURVE,
+            &self.mint.to_account_info().key.as_ref(),
             &[self.bonding_curve.bump],
         ];
 

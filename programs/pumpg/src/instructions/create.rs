@@ -19,13 +19,13 @@ pub struct Create<'info> {
     pub payer: Signer<'info>,
 
     #[account(
-        init,
-        payer = payer,
+        mut,
         mint::decimals = 6,
         mint::authority = bonding_curve,
         mint::token_program = token_program,
     )]
     pub mint: Account<'info, Mint>,
+
     #[account(
         init,
         payer = payer,
@@ -48,6 +48,7 @@ pub struct Create<'info> {
     /// CHECK: New Metaplex Account being created
     #[account(mut)]
     pub metadata: AccountInfo<'info>,
+    
     pub mpl_metadata_program: Program<'info, Metadata>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
@@ -61,8 +62,8 @@ impl<'info> Create<'info> {
         // Create metadata
 
         let seeds = &[
-            &b"bonding-curve"[..],
-            &self.mint.key().to_bytes()[..],
+            BONDING_CURVE,
+            &self.mint.to_account_info().key.as_ref(),
             &[bump],
         ];
 
@@ -89,7 +90,7 @@ impl<'info> Create<'info> {
                 update_authority: (update_authority, true),
                 payer,
                 system_program,
-                rent: None,
+                rent: Some(&self.rent.to_account_info()),
             },
             CreateMetadataAccountV3InstructionArgs {
                 data: DataV2 {

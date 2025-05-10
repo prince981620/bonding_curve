@@ -7,7 +7,7 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{bonding_curve, compute_s, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL};
+use crate::{bonding_curve, compute_s, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, CURVE_VAULT, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Sell <'info> {
@@ -35,6 +35,13 @@ pub struct Sell <'info> {
         constraint = matches!(bonding_curve.complete, false) @ Errors::BondingCurveComplete,
     )]
     pub bonding_curve: Account<'info, BondingCurve>,
+
+    #[account(
+        mut,
+        seeds = [CURVE_VAULT, bonding_curve.mint.key().as_ref()], // PDA seeds for the vault.
+        bump = bonding_curve.vault_bump, // Bump seed for the vault PDA.
+    )]
+    pub vault: SystemAccount<'info>,
 
     #[account(
         mut,
@@ -97,7 +104,7 @@ impl <'info> Sell<'info> {
 
         self.send_token(amount)?;
 
-        self.send_sol(delta_S)?;
+        self.send_sol(delta_S_after_fee)?;
 
 
         self.update_bonding_curve(delta_S_after_fee, amount, S_new, T_new)?;
@@ -126,14 +133,14 @@ impl <'info> Sell<'info> {
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
         let cpi_accounts = Transfer {
-            from: self.bonding_curve.to_account_info(),
+            from: self.vault.to_account_info(),
             to: self.user.to_account_info(),
         };
 
         let seeds = &[
-            BONDING_CURVE,
+            CURVE_VAULT,
             &self.mint.to_account_info().key.as_ref(),
-            &[self.bonding_curve.bump],
+            &[self.bonding_curve.vault_bump],
         ];
 
         let signer_seeds = &[&seeds[..]];
@@ -144,8 +151,8 @@ impl <'info> Sell<'info> {
 
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
-        let cpi_accounts = Transfer {
-            from: self.bonding_curve.to_account_info(),
+        let cpi_accounts: Transfer<'_> = Transfer {
+            from: self.vault.to_account_info(),
             to: self.fee_recipient.to_account_info(),
         };
 
@@ -186,6 +193,7 @@ impl <'info> Sell<'info> {
             total_lamports_spent: S_new,
             initializer: bonding_curve.initializer,
             bump: bonding_curve.bump,
+            vault_bump: bonding_curve.vault_bump,
             _padding: [0; 7],
         });
 

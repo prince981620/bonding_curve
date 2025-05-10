@@ -34,6 +34,12 @@ pub struct Create<'info> {
         bump
     )]
     pub bonding_curve: Account<'info, BondingCurve>,
+
+    #[account(
+        seeds = [CURVE_VAULT, mint.key().as_ref()], // PDA seeds for the vault.
+        bump, // Bump seed for the vault PDA.
+    )]
+    pub vault: SystemAccount<'info>,
     
     #[account(
         init,
@@ -58,7 +64,7 @@ pub struct Create<'info> {
 
 
 impl<'info> Create<'info> {
-    pub fn create_token(&mut self, name: String, symbol: String, uri: String, bump:u8) -> Result<()> {
+    pub fn create_token(&mut self, name: String, symbol: String, uri: String, bump:u8, vault_bump: u8) -> Result<()> {
         // Create metadata
 
         let seeds = &[
@@ -147,6 +153,7 @@ impl<'info> Create<'info> {
             total_lamports_spent: 0,
             initializer: self.payer.key(),
             bump,
+            vault_bump,
             _padding: [0; 7],
         });
 

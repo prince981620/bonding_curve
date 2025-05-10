@@ -7,7 +7,7 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{compute_s, errors::Errors, BondingCurve, Global, TokenPurchased, BONDING_CURVE, COMPLETION_LAMPORTS, GLOBAL};
+use crate::{compute_s, errors::Errors, BondingCurve, Global, TokenPurchased, BONDING_CURVE, COMPLETION_LAMPORTS, CURVE_VAULT, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Buy <'info> {
@@ -30,8 +30,8 @@ pub struct Buy <'info> {
 
     #[account(
         mut,
-        seeds = [b"vault", bonding_curve.mint.key().as_ref()], // PDA seeds for the vault.
-        bump, // Bump seed for the vault PDA.
+        seeds = [CURVE_VAULT, bonding_curve.mint.key().as_ref()], // PDA seeds for the vault.
+        bump = bonding_curve.vault_bump, // Bump seed for the vault PDA.
     )]
     pub vault: SystemAccount<'info>,
 
@@ -204,6 +204,7 @@ impl <'info> Buy <'info> {
             total_lamports_spent: S_new,
             initializer: bonding_curve.initializer,
             bump: bonding_curve.bump,
+            vault_bump: bonding_curve.vault_bump,
             _padding: [0; 7],
         });
 

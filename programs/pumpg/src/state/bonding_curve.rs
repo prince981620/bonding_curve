@@ -14,6 +14,7 @@ pub struct BondingCurve {
     pub total_lamports_spent: u64,
     pub initializer: Pubkey,
     pub bump: u8,
+    pub vault_bump: u8,
     pub _padding: [u8; 7],
 }
 

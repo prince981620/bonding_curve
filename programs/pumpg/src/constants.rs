@@ -21,6 +21,8 @@ pub const GLOBAL: &[u8] = b"global";
 
 pub const BONDING_CURVE : &[u8] = b"bonding_curve";
 
+pub const CURVE_VAULT: &[u8] = b"curve-vault";
+
 pub const MIGRATION_FEE : u64 = 6 * LAMPORTS_PER_SOL; // 6 SOL
 
 

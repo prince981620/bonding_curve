@@ -50,7 +50,8 @@ pub mod pumpg {
             name,
             symbol,
             uri,
-            ctx.bumps.bonding_curve
+            ctx.bumps.bonding_curve,
+            ctx.bumps.vault
         )
     } 
 

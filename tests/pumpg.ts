@@ -58,6 +58,8 @@ describe("pumpg", async () => {
 
   const BONDING_CURVE:string = "bonding_curve";
 
+  const CURVE_VAULT:string = "curve-vault";
+
 
 
   const admin = Keypair.fromSecretKey(new Uint8Array(wallet));
@@ -77,9 +79,12 @@ describe("pumpg", async () => {
 
   let mint: PublicKey;
   let bonding_curve: PublicKey;
+  let vault: PublicKey;
   let bonding_curve_ata: PublicKey;
   let metadata: PublicKey;
   let devAta: PublicKey;
+  let buyer1Ata: PublicKey;
+  let buyer2Ata: PublicKey;
 
   const mintadd = Keypair.generate();
 
@@ -91,6 +96,11 @@ describe("pumpg", async () => {
 
     bonding_curve = PublicKey.findProgramAddressSync(
       [Buffer.from(BONDING_CURVE), mintadd.publicKey.toBuffer()],
+      program.programId
+    )[0];
+
+    vault = PublicKey.findProgramAddressSync(
+      [Buffer.from(CURVE_VAULT), mintadd.publicKey.toBuffer()],
       program.programId
     )[0];
 
@@ -119,6 +129,20 @@ describe("pumpg", async () => {
       coindev,
       mint,
       coindev.publicKey
+    )).address;
+
+    buyer1Ata = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      buyer1,
+      mint,
+      buyer1.publicKey
+    )).address;
+
+    buyer2Ata = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      buyer2,
+      mint,
+      buyer2.publicKey
     )).address;
   
   
@@ -169,6 +193,7 @@ describe("pumpg", async () => {
       payer:coindev.publicKey,
       mint: mint,
       bondingCurve: bonding_curve,
+      vault:vault,
       bondingCurveAta: bonding_curve_ata,
       global: global,
       metadata: metadata,
@@ -197,6 +222,9 @@ describe("pumpg", async () => {
     const initalFee = await connection.getBalance(admin.publicKey);
     console.log("inital fee",initalFee);
 
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
+
     
     // const initialBondingCurve = await program.account.bondingCurve.fetch(
     //   bonding_curve
@@ -220,6 +248,7 @@ describe("pumpg", async () => {
       feeRecipient: admin.publicKey,
       bondingCurve: bonding_curve,
       bondingCurveAta: bonding_curve_ata,
+      vault: vault,
       userAta: devAta,
       mint: mint,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -244,6 +273,12 @@ describe("pumpg", async () => {
     console.log("final fee",FinalFee);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
+
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol added :", finalVaultSOl - vaultSOL);
+
     console.log("--------------------------------- end of dev tx")
   })
 
@@ -261,6 +296,9 @@ describe("pumpg", async () => {
 
     const initalFee = await connection.getBalance(admin.publicKey);
     console.log("inital fee",initalFee);
+
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
 
     
     // const initialBondingCurve = await program.account.bondingCurve.fetch(
@@ -284,6 +322,7 @@ describe("pumpg", async () => {
       global: global,
       feeRecipient: admin.publicKey,
       bondingCurve: bonding_curve,
+      vault: vault,
       bondingCurveAta: bonding_curve_ata,
       userAta: buyer1_ata,
       mint: mint,
@@ -310,6 +349,11 @@ describe("pumpg", async () => {
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol added :", finalVaultSOl - vaultSOL);
+
     console.log("--------------------------------- end of buyer1 tx")
   })
 
@@ -327,6 +371,9 @@ describe("pumpg", async () => {
 
     const initalFee = await connection.getBalance(admin.publicKey);
     console.log("inital fee",initalFee);
+
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
 
     
     // const initialBondingCurve = await program.account.bondingCurve.fetch(
@@ -350,6 +397,7 @@ describe("pumpg", async () => {
       global: global,
       feeRecipient: admin.publicKey,
       bondingCurve: bonding_curve,
+      vault: vault,
       bondingCurveAta: bonding_curve_ata,
       userAta: buyer2_ata,
       mint: mint,
@@ -376,19 +424,27 @@ describe("pumpg", async () => {
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol added :", finalVaultSOl - vaultSOL);
+
     console.log("--------------------------------- end of buyer2 tx")
 
   })
 
   it("Dev sell all", async ()=>{
     const initalSOl = await connection.getBalance(coindev.publicKey);
-    console.log("inital sol",initalSOl);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
     const initalFee = await connection.getBalance(admin.publicKey);
     console.log("inital fee",initalFee);
 
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
+
     const amount = new anchor.BN(66_930_000_000_000); // 1 M token as decimal = 6
-    const minSolOutput = new anchor.BN(2_500_000_000);
+    const minSolOutput = new anchor.BN(2_800_000_000);
 
     const tx = await program.methods.sell(
       amount,
@@ -399,6 +455,7 @@ describe("pumpg", async () => {
       global: global,
       feeRecipient: admin.publicKey,
       bondingCurve: bonding_curve,
+      vault: vault,
       bondingCurveAta: bonding_curve_ata,
       userAta: devAta,
       mint: mint,
@@ -409,21 +466,138 @@ describe("pumpg", async () => {
     .signers([coindev])
     .rpc()
 
-    console.log("buy tx", tx);
+    console.log("sell tx", tx);
 
     const token_balance = await connection.getTokenAccountBalance(devAta)
-    console.log(Number(token_balance?.value?.amount)/1000000);
+    console.log("TOken balance",Number(token_balance?.value?.amount)/1000000);
 
     const finalSOl = await connection.getBalance(coindev.publicKey);
-    console.log("final sol",finalSOl);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
 
-    console.log("sol used : ",initalSOl - finalSOl);
+    console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
 
     const FinalFee = await connection.getBalance(admin.publicKey);
     console.log("final fee",FinalFee);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
-    console.log("--------------------------------- end of dev tx")
+
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+
+    console.log("--------------------------------- end of tx")
   })
+  it("buyer 2 sell all", async ()=>{
+    const initalSOl = await connection.getBalance(buyer2.publicKey);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
+
+    const initalFee = await connection.getBalance(admin.publicKey);
+    console.log("inital fee",initalFee/LAMPORTS_PER_SOL);
+
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL/LAMPORTS_PER_SOL);
+
+    const amount = new anchor.BN(78_080_000_000_000); // 1 M token as decimal = 6
+    const minSolOutput = new anchor.BN(2_700_000_000);
+
+    const tx = await program.methods.sell(
+      amount,
+      minSolOutput
+    )
+    .accountsStrict({
+      user: buyer2.publicKey,
+      global: global,
+      feeRecipient: admin.publicKey,
+      bondingCurve: bonding_curve,
+      vault: vault,
+      bondingCurveAta: bonding_curve_ata,
+      userAta: buyer2Ata,
+      mint: mint,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([buyer2])
+    .rpc()
+
+    console.log("sell tx", tx);
+
+    const token_balance = await connection.getTokenAccountBalance(buyer2Ata)
+    console.log("TOken balance",Number(token_balance?.value?.amount)/1000000);
+
+    const finalSOl = await connection.getBalance(buyer2.publicKey);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
+
+    console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
+
+    const FinalFee = await connection.getBalance(admin.publicKey);
+    console.log("final fee",FinalFee);
+
+    console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
+
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+
+    console.log("--------------------------------- end of tx")
+  })
+  it("buyer1 sell all", async ()=>{
+    const initalSOl = await connection.getBalance(buyer1.publicKey);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
+
+    const initalFee = await connection.getBalance(admin.publicKey);
+    console.log("inital fee",initalFee);
+
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
+
+    const amount = new anchor.BN(84_680_000_000_000); // 1 M token as decimal = 6
+    const minSolOutput = new anchor.BN(2_500_000_000);
+
+    const tx = await program.methods.sell(
+      amount,
+      minSolOutput
+    )
+    .accountsStrict({
+      user: buyer1.publicKey,
+      global: global,
+      feeRecipient: admin.publicKey,
+      bondingCurve: bonding_curve,
+      vault: vault,
+      bondingCurveAta: bonding_curve_ata,
+      userAta: buyer1Ata,
+      mint: mint,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([buyer1])
+    .rpc()
+
+    console.log("sell tx", tx);
+
+    const token_balance = await connection.getTokenAccountBalance(buyer1Ata)
+    console.log("TOken balance",Number(token_balance?.value?.amount)/1000000);
+
+    const finalSOl = await connection.getBalance(buyer1.publicKey);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
+
+    console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
+
+    const FinalFee = await connection.getBalance(admin.publicKey);
+    console.log("final fee",FinalFee);
+
+    console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
+
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+
+    console.log("--------------------------------- end of tx")
+  })
+
 
 });

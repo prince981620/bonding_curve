@@ -2,12 +2,20 @@ use anchor_lang::prelude::*;
 use crate::errors::Errors;
 use crate::state::Global;
 use crate::events::ParamsSet;
+use crate::{GLOBAL};
 
 #[derive(Accounts)]
 pub struct SetParams<'info> {
-    #[account(mut, seeds = [b"global"], bump=global.bump)]
+    #[account(
+        mut,
+        seeds = [GLOBAL], 
+        bump=global.bump
+    )]
     pub global: Account<'info, Global>,
-    #[account(mut)]
+    #[account(
+        mut,
+        address = global.authority,
+    )]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -27,16 +35,12 @@ impl<'info> SetParams<'info> {
         //  
         let global = &mut self.global;
 
-        if *self.user.key != global.authority {
-            return Err(Errors::NotAuthorized.into());
-        }
-
         self.global.fee_recipient = fee_recipient.unwrap_or(self.global.fee_recipient);
         self.global.initial_virtual_token_reserves = initial_virtual_token_reserves.unwrap_or(self.global.initial_virtual_token_reserves);
         self.global.initial_virtual_sol_reserves = initial_virtual_sol_reserves.unwrap_or(self.global.initial_virtual_sol_reserves);
         self.global.initial_real_token_reserves = initial_real_token_reserves.unwrap_or(self.global.initial_real_token_reserves);
         self.global.token_total_supply = token_total_supply.unwrap_or(self.global.token_total_supply);
-
+        self.global.fee_basis_points = fee_basis_points.unwrap_or(self.global.fee_basis_points);
         // global.set_inner(Global {
         //     initialized: global.initialized,
         //     authority: global.authority,

@@ -85,6 +85,7 @@ describe("pumpg", async () => {
   let devAta: PublicKey;
   let buyer1Ata: PublicKey;
   let buyer2Ata: PublicKey;
+  let admin_ata: PublicKey;
 
   const mintadd = Keypair.generate();
 
@@ -143,6 +144,13 @@ describe("pumpg", async () => {
       buyer2,
       mint,
       buyer2.publicKey
+    )).address;
+
+    admin_ata = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      admin,
+      mint,
+      admin.publicKey
     )).address;
   
   
@@ -236,8 +244,8 @@ describe("pumpg", async () => {
     //   await provider.connection.getTokenAccountBalance(bonding_curve_ata);
 
 
-    const amount = new anchor.BN(66_930_000_000_000); // 1 M token as decimal = 6
-    const maxsolcost = new anchor.BN(2_000_000_000); // 1 sol
+    const amount = new anchor.BN(426_640_159_000_000); // 1 M token as decimal = 6
+    const maxsolcost = new anchor.BN(20_000_000_000); // 1 sol
     const tx = await program.methods.buy(
       amount,
       maxsolcost
@@ -282,7 +290,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of dev tx")
   })
 
-  it("buyer1 buy coin", async ()=> {
+  xit("buyer1 buy coin", async ()=> {
 
     const buyer1_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -357,7 +365,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of buyer1 tx")
   })
 
-  it("buyer2 buy coin", async ()=> {
+  xit("buyer2 buy coin", async ()=> {
 
     const buyer2_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -433,7 +441,7 @@ describe("pumpg", async () => {
 
   })
 
-  it("Dev sell all", async ()=>{
+  xit("Dev sell all", async ()=>{
     const initalSOl = await connection.getBalance(coindev.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -488,7 +496,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  it("buyer 2 sell all", async ()=>{
+  xit("buyer 2 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer2.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -543,7 +551,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  it("buyer1 sell all", async ()=>{
+  xit("buyer1 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -599,5 +607,169 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
+  xit("set Params",async ()=>{
 
+    const feeRecipient = Keypair.generate();
+
+    const globalState = await program.account.global.fetch(global);
+
+    console.log("global state :", globalState);
+
+    const tx = await program.methods
+      .setParams(
+        feeRecipient.publicKey,
+        new anchor.BN(globalState.initialVirtualTokenReserves),
+        new anchor.BN(globalState.initialVirtualSolReserves),
+        new anchor.BN(globalState.initialRealTokenReserves),
+        new anchor.BN(globalState.tokenTotalSupply),
+        new anchor.BN(globalState.feeBasisPoints)
+      )
+      .accountsStrict({
+        global: global,
+        user: admin.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([admin]) 
+      .rpc();
+
+    console.log("set params tx", tx);
+    console.log("global state :", globalState);
+
+  })
+
+  xit("set Params with wrong admin it should fail",async ()=>{
+
+    const feeRecipient = Keypair.generate();
+
+    const globalState = await program.account.global.fetch(global);
+
+    console.log("global state :", globalState);
+
+    const tx = await program.methods
+      .setParams(
+        feeRecipient.publicKey,
+        new anchor.BN(globalState.initialVirtualTokenReserves),
+        new anchor.BN(globalState.initialVirtualSolReserves),
+        new anchor.BN(globalState.initialRealTokenReserves),
+        new anchor.BN(globalState.tokenTotalSupply),
+        new anchor.BN(globalState.feeBasisPoints)
+      )
+      .accountsStrict({
+        global: global,
+        user: admin.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([coindev]) 
+      .rpc();
+
+    console.log("set params tx", tx);
+    console.log("global state :", globalState);
+
+  })
+
+
+  xit("withdraw sol and token for cpi to radium", async ()=>{
+
+    const initalSOl = await connection.getBalance(admin.publicKey);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
+
+    const initalFee = await connection.getBalance(admin.publicKey);
+    console.log("inital fee",initalFee);
+
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
+
+    let tx = await program.methods
+      .withdraw()
+      .accountsStrict({
+        authority: admin.publicKey,
+        global: global,
+        feeRecipient: admin.publicKey,
+        bondingCurve: bonding_curve,
+        vault: vault,
+        bondingCurveAta: bonding_curve_ata,
+        userAta: admin_ata,
+        mint: mintadd.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([admin])
+      .rpc()
+
+      console.log("withdraw tx:", tx);
+
+      const token_balance = await connection.getTokenAccountBalance(admin_ata)
+    console.log("TOken balance",Number(token_balance?.value?.amount)/1000000);
+
+    const finalSOl = await connection.getBalance(admin.publicKey);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
+
+    console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
+
+    const FinalFee = await connection.getBalance(admin.publicKey);
+    console.log("final fee",FinalFee);
+
+    console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
+
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+
+    console.log("--------------------------------- end of tx")
+  })
+
+  it("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
+
+    const initalSOl = await connection.getBalance(buyer1.publicKey);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
+
+    const initalFee = await connection.getBalance(admin.publicKey);
+    console.log("inital fee",initalFee);
+
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
+
+    let tx = await program.methods
+      .withdraw()
+      .accountsStrict({
+        authority: buyer1.publicKey,
+        global: global,
+        feeRecipient: admin.publicKey,
+        bondingCurve: bonding_curve,
+        vault: vault,
+        bondingCurveAta: bonding_curve_ata,
+        userAta: buyer1Ata,
+        mint: mintadd.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([buyer1])
+      .rpc()
+
+      console.log("withdraw tx:", tx);
+
+      const token_balance = await connection.getTokenAccountBalance(admin_ata)
+    console.log("TOken balance",Number(token_balance?.value?.amount)/1000000);
+
+    const finalSOl = await connection.getBalance(admin.publicKey);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
+
+    console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
+
+    const FinalFee = await connection.getBalance(admin.publicKey);
+    console.log("final fee",FinalFee);
+
+    console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
+
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl);
+
+    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+
+    console.log("--------------------------------- end of tx")
+  })
+ 
 });

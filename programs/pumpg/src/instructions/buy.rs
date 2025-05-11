@@ -86,10 +86,11 @@ impl <'info> Buy <'info> {
         
 
         let t_current = bonding_curve.total_tokens_sold;
-        let t_new = t_current.checked_add(amount).ok_or(Errors::Overflow)?;
+        let mut t_new = t_current.checked_add(amount).ok_or(Errors::Overflow)?;
 
         if t_new > bonding_curve.real_token_reserve {
-            return Err(Errors::InsufficientTokens.into());
+            // return Err(Errors::InsufficientTokens.into());
+            t_new = bonding_curve.real_token_reserve.checked_sub(t_current).ok_or(Errors::Underflow)?;
         }
 
         let s_new = compute_s(t_new)?;
@@ -99,12 +100,19 @@ impl <'info> Buy <'info> {
             return Err(Errors::TooMuchSolRequired.into());
         }
 
-        let fee_amount = (delta_s as u128 * self.global.fee_basis_points as u128 / 10_000)
-            .try_into()
-            .map_err(|_| Errors::InvalidCalculation)?;
-        let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
+        // let fee_amount = (delta_s as u128 * self.global.fee_basis_points as u128 / 10_000)
+        //     .try_into()
+        //     .map_err(|_| Errors::InvalidCalculation)?;
 
-        self.send_sol(delta_s)?;
+        let fee_amount = delta_s
+            .checked_mul(self.global.fee_basis_points)
+            .unwrap()
+            .checked_div(10000_u64)
+            .unwrap();
+
+        // let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
+
+        self.send_sol(delta_s, fee_amount)?;
 
         self.send_token(amount)?;
 
@@ -112,7 +120,7 @@ impl <'info> Buy <'info> {
             self.bonding_curve.complete = true;
         }
 
-        self.update_bonding_curve(delta_s_after_fee, amount, s_new, t_new)?;
+        self.update_bonding_curve(delta_s, amount, s_new, t_new)?;
 
         
         emit!(TokenPurchased {
@@ -134,12 +142,12 @@ impl <'info> Buy <'info> {
         Ok(())
     }
 
-    pub fn send_sol (&mut self, sol_amount: u64) -> Result<()> {
-        let platform_fee = sol_amount
-            .checked_mul(self.global.fee_basis_points)
-            .unwrap()
-            .checked_div(10000_u64)
-            .unwrap();
+    pub fn send_sol (&mut self, sol_amount: u64,platform_fee: u64) -> Result<()> {
+        // let platform_fee = sol_amount
+        //     .checked_mul(self.global.fee_basis_points)
+        //     .unwrap()
+        //     .checked_div(10000_u64)
+        //     .unwrap();
 
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
@@ -150,7 +158,7 @@ impl <'info> Buy <'info> {
 
         let ctx = CpiContext::new(cpi_program, cpi_accounts);
 
-        transfer(ctx, sol_amount.checked_sub(platform_fee).unwrap())?;
+        transfer(ctx, sol_amount)?;
 
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 

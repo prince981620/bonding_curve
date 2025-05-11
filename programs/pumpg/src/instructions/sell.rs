@@ -97,17 +97,23 @@ impl <'info> Sell<'info> {
 
         // u128::try_from(delta_s) 
 
-        let fee_amount = (delta_s as u128 * self.global.fee_basis_points as u128 / 10_000)
-            .try_into()
-            .map_err(|_| Errors::InvalidCalculation)?;
-        let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
+        // let fee_amount = (delta_s as u128 * self.global.fee_basis_points as u128 / 10_000)
+        //     .try_into()
+        //     .map_err(|_| Errors::InvalidCalculation)?;
+        // let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
+
+        let fee_amount = delta_s
+            .checked_mul(self.global.fee_basis_points)
+            .unwrap()
+            .checked_div(10000_u64)
+            .unwrap();
 
         self.send_token(amount)?;
 
-        self.send_sol(delta_s_after_fee)?;
+        self.send_sol(delta_s, fee_amount)?;
 
 
-        self.update_bonding_curve(delta_s_after_fee, amount, s_new, t_new)?;
+        self.update_bonding_curve(delta_s, amount, s_new, t_new)?;
 
         
 
@@ -115,20 +121,20 @@ impl <'info> Sell<'info> {
             mint: self.mint.key(),
             user: self.user.key(),
             amount,
-            sol_received: delta_s_after_fee,
+            sol_received: delta_s,
             fee: fee_amount,
         });
         
         Ok(())
     }
 
-    pub fn send_sol (&mut self, sol_amount: u64) -> Result<()> {
+    pub fn send_sol (&mut self, sol_amount: u64, platform_fee: u64) -> Result<()> {
 
-        let platform_fee = sol_amount
-            .checked_mul(self.global.fee_basis_points)
-            .unwrap()
-            .checked_div(10000_u64)
-            .unwrap();
+        // let platform_fee = sol_amount
+        //     .checked_mul(self.global.fee_basis_points)
+        //     .unwrap()
+        //     .checked_div(10000_u64)
+        //     .unwrap();
 
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
@@ -141,7 +147,7 @@ impl <'info> Sell<'info> {
             CURVE_VAULT,
             &self.mint.to_account_info().key.as_ref(),
             &[self.bonding_curve.vault_bump],
-        ];
+        ];  
 
         let signer_seeds = &[&seeds[..]];
 

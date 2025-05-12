@@ -11,7 +11,6 @@ pub struct Global {
     pub initial_real_token_reserves: u64,
     pub token_total_supply: u64,
     pub fee_basis_points: u64,
-    pub accumulated_fees: u64,
     pub bump: u8
 }
 // passed

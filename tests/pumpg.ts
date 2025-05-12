@@ -650,7 +650,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
-  xit("set Params",async ()=>{
+  it("set Params",async ()=>{
 
     const feeRecipient = Keypair.generate();
 

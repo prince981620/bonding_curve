@@ -15,7 +15,6 @@ pub struct Sell <'info> {
     pub user: Signer<'info>,
 
     #[account(
-        mut,
         seeds = [GLOBAL],
         bump = global.bump,
     )]

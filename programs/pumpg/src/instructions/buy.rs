@@ -16,7 +16,6 @@ pub struct Buy <'info> {
     pub user: Signer<'info>,
 
     #[account(
-        mut,
         seeds = [GLOBAL],
         bump = global.bump,
     )]

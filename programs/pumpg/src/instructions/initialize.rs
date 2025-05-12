@@ -32,7 +32,6 @@ impl<'info> Initialize<'info> {
             initial_real_token_reserves: BONDING_CURVE_SUPPLY,
             token_total_supply: TOTAL_SUPPLY,
             fee_basis_points: 100,
-            accumulated_fees: 0,
             bump: bump.global,
         });
         emit!(Initialized {

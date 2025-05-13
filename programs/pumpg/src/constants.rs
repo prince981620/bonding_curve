@@ -1,5 +1,4 @@
-use anchor_lang::{prelude::Pubkey, pubkey};
-
+use anchor_lang::{prelude::*, solana_program};
 
 pub const P: u64 = 1_073_000_191; // inital_virtual_token
 pub const R: u64 = 30; //initial_virtual_sol
@@ -26,7 +25,6 @@ pub const CURVE_VAULT: &[u8] = b"curve-vault";
 
 pub const MIGRATION_FEE : u64 = 6 * LAMPORTS_PER_SOL; // 6 SOL
 
-// constants for Raydium CPI
 
 pub const FUNDING_AMOUNT: u64 = 79 * LAMPORTS_PER_SOL;
 
@@ -34,7 +32,7 @@ pub const WSOL_ID: Pubkey = solana_program::pubkey!("So1111111111111111111111111
 
 pub const DEFAULT_DECIMALS: u8 = 6;
 
-// pub const DEFAULT_SUPPLY: u64 = 1_000_000_000_000_000;
+pub const DEFAULT_SUPPLY: u64 = 206_900_000_000_000;
 
 /*
 

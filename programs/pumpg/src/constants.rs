@@ -7,6 +7,7 @@ pub const R: u64 = 30; //initial_virtual_sol
 pub const Q: u128 = 32_190_005_730; // constant_product
 
 pub const SCALE: u64 = 1_000_000; // 10^6 for token decimals
+
 pub const LAMPORTS_PER_SOL: u64 = 1_000_000_000; // 10^9 for solana lamports
 
 pub const TOTAL_SUPPLY: u64 = 1_000_000_000 * SCALE; // 1 billion tokens
@@ -25,6 +26,15 @@ pub const CURVE_VAULT: &[u8] = b"curve-vault";
 
 pub const MIGRATION_FEE : u64 = 6 * LAMPORTS_PER_SOL; // 6 SOL
 
+// constants for Raydium CPI
+
+pub const FUNDING_AMOUNT: u64 = 79 * LAMPORTS_PER_SOL;
+
+pub const WSOL_ID: Pubkey = solana_program::pubkey!("So11111111111111111111111111111111111111112");
+
+pub const DEFAULT_DECIMALS: u8 = 6;
+
+// pub const DEFAULT_SUPPLY: u64 = 1_000_000_000_000_000;
 
 /*
 

@@ -1,233 +1,233 @@
-use anchor_lang::{prelude::*, system_program::{Transfer, transfer}};
+// use anchor_lang::{prelude::*, system_program::{Transfer, transfer}};
 
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token::Token,
-    token_interface::{Mint, TokenAccount, TokenInterface},
-};
+// use anchor_spl::{
+//     associated_token::AssociatedToken,
+//     token::Token,
+//     token_interface::{Mint, TokenAccount, TokenInterface},
+// };
 
-use raydium_cpmm_cpi::{
-    cpi,
-    program::RaydiumCpmm,
-    states::{AmmConfig, OBSERVATION_SEED, POOL_LP_MINT_SEED, POOL_SEED, POOL_VAULT_SEED},
-};
+// use raydium_cpmm_cpi::{
+//     cpi,
+//     program::RaydiumCpmm,
+//     states::{AmmConfig, OBSERVATION_SEED, POOL_LP_MINT_SEED, POOL_SEED, POOL_VAULT_SEED},
+// };
 
-use crate::{errors::Errors, BondingCurve, Global, BONDING_CURVE, CURVE_VAULT, DEFAULT_DECIMALS, DEFAULT_SUPPLY, FUNDING_AMOUNT, GLOBAL, MIGRATION_FEE, WSOL_ID};
+// use crate::{errors::Errors, BondingCurve, Global, BONDING_CURVE, CURVE_VAULT, DEFAULT_DECIMALS, DEFAULT_SUPPLY, FUNDING_AMOUNT, GLOBAL, MIGRATION_FEE, WSOL_ID};
 
-#[derive(Accounts)]
-pub struct CrateCpmmPool <'info> {
+// #[derive(Accounts)]
+// pub struct CrateCpmmPool <'info> {
 
-    pub cp_swap_program: Program <'info, RaydiumCpmm>,
+//     pub cp_swap_program: Program <'info, RaydiumCpmm>,
 
-    #[account(
-        mut,
-        address = global.authority,
-    )]
-    pub authority: Signer<'info>,
+//     #[account(
+//         mut,
+//         address = global.authority,
+//     )]
+//     pub authority: Signer<'info>,
 
-    #[account(
-        mint::decimals = DEFAULT_DECIMALS,
-        mint::authority = bonding_curve, //change this to bonding curve
-        mint::token_program = token_program,
-    )]
-    pub mint: Account<'info, Mint>,
+//     #[account(
+//         mint::decimals = DEFAULT_DECIMALS,
+//         mint::authority = bonding_curve, //change this to bonding curve
+//         mint::token_program = token_program,
+//     )]
+//     pub mint: Account<'info, Mint>,
 
-    #[account(
-        mut,
-        address = WSOL_ID,
-        mint::decimals = DEFAULT_DECIMALS,
-        mint::authority = bonding_curve, //change this to bonding curve
-        mint::token_program = token_program,
-    )]
-    pub base_mint: Account<'info, Mint>,
+//     #[account(
+//         mut,
+//         address = WSOL_ID,
+//         mint::decimals = DEFAULT_DECIMALS,
+//         mint::authority = bonding_curve, //change this to bonding curve
+//         mint::token_program = token_program,
+//     )]
+//     pub base_mint: Account<'info, Mint>,
 
-    /// CHECK: Initialize an account to store the pool state, init by cp-swap
-    #[account(
-        mut,
-        seeds = [
-            POOL_SEED.as_bytes(),
-            amm_config.key().as_ref(),
-            base_mint.key().as_ref(),
-            mint.key().as_ref(),
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub pool_state: UncheckedAccount<'info>,
+//     /// CHECK: Initialize an account to store the pool state, init by cp-swap
+//     #[account(
+//         mut,
+//         seeds = [
+//             POOL_SEED.as_bytes(),
+//             amm_config.key().as_ref(),
+//             base_mint.key().as_ref(),
+//             mint.key().as_ref(),
+//         ],
+//         seeds::program = cp_swap_program.key(),
+//         bump,
+//     )]
+//     pub pool_state: UncheckedAccount<'info>,
 
-    #[account(
-        mut,
-        seeds = [GLOBAL],
-        bump = global.bump,
-        has_one = authority,
-        has_one = fee_recipient,
-    )]
-    pub global: Account<'info, Global>,
+//     #[account(
+//         mut,
+//         seeds = [GLOBAL],
+//         bump = global.bump,
+//         has_one = authority,
+//         has_one = fee_recipient,
+//     )]
+//     pub global: Account<'info, Global>,
 
-    #[account(mut)]
-    pub fee_recipient: SystemAccount<'info>,
-
-
-
-    #[account(
-        mut,
-        seeds = [BONDING_CURVE, bonding_curve.mint.key().as_ref()],
-        bump = bonding_curve.bump,
-        has_one = mint,
-        constraint = bonding_curve.complete @ Errors::BondingCurveNotComplete,
-    )]
-    pub bonding_curve: Account<'info, BondingCurve>,
-
-    #[account(
-        mut,
-        seeds = [CURVE_VAULT, bonding_curve.mint.key().as_ref()],
-        bump = bonding_curve.vault_bump, 
-    )]
-    pub vault: SystemAccount<'info>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint,
-        associated_token::authority = bonding_curve,
-    )]
-    pub bonding_curve_ata: Account<'info, TokenAccount>,
-
-    pub amm_config: Box<Account<'info, AmmConfig>>,
+//     #[account(mut)]
+//     pub fee_recipient: SystemAccount<'info>,
 
 
-    /// CHECK: pool vault and lp mint authority
-    #[account(
-        seeds = [
-            raydium_cpmm_cpi::AUTH_SEED.as_bytes(),
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub radium_authority: UncheckedAccount<'info>,
 
-    /// CHECK: pool lp mint, init by cp-swap
-    #[account(
-        mut,
-        seeds = [
-            POOL_LP_MINT_SEED.as_bytes(),
-            pool_state.key().as_ref(),
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub lp_mint: UncheckedAccount<'info>,
+//     #[account(
+//         mut,
+//         seeds = [BONDING_CURVE, bonding_curve.mint.key().as_ref()],
+//         bump = bonding_curve.bump,
+//         has_one = mint,
+//         constraint = bonding_curve.complete @ Errors::BondingCurveNotComplete,
+//     )]
+//     pub bonding_curve: Account<'info, BondingCurve>,
 
-    /// CHECK: creator lp ATA token account, init by cp-swap
-    #[account(mut)]
-    pub creator_lp_token: UncheckedAccount<'info>,
+//     #[account(
+//         mut,
+//         seeds = [CURVE_VAULT, bonding_curve.mint.key().as_ref()],
+//         bump = bonding_curve.vault_bump, 
+//     )]
+//     pub vault: SystemAccount<'info>,
 
-    /// CHECK: Token_0 vault for the pool, init by cp-swap
-    #[account(
-        mut,
-        seeds = [
-            POOL_VAULT_SEED.as_bytes(),
-            pool_state.key().as_ref(),
-            base_mint.key().as_ref()
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub token_0_vault: UncheckedAccount<'info>,
+//     #[account(
+//         mut,
+//         associated_token::mint = mint,
+//         associated_token::authority = bonding_curve,
+//     )]
+//     pub bonding_curve_ata: Account<'info, TokenAccount>,
+
+//     pub amm_config: Box<Account<'info, AmmConfig>>,
+
+
+//     /// CHECK: pool vault and lp mint authority
+//     #[account(
+//         seeds = [
+//             raydium_cpmm_cpi::AUTH_SEED.as_bytes(),
+//         ],
+//         seeds::program = cp_swap_program.key(),
+//         bump,
+//     )]
+//     pub radium_authority: UncheckedAccount<'info>,
+
+//     /// CHECK: pool lp mint, init by cp-swap
+//     #[account(
+//         mut,
+//         seeds = [
+//             POOL_LP_MINT_SEED.as_bytes(),
+//             pool_state.key().as_ref(),
+//         ],
+//         seeds::program = cp_swap_program.key(),
+//         bump,
+//     )]
+//     pub lp_mint: UncheckedAccount<'info>,
+
+//     /// CHECK: creator lp ATA token account, init by cp-swap
+//     #[account(mut)]
+//     pub creator_lp_token: UncheckedAccount<'info>,
+
+//     /// CHECK: Token_0 vault for the pool, init by cp-swap
+//     #[account(
+//         mut,
+//         seeds = [
+//             POOL_VAULT_SEED.as_bytes(),
+//             pool_state.key().as_ref(),
+//             base_mint.key().as_ref()
+//         ],
+//         seeds::program = cp_swap_program.key(),
+//         bump,
+//     )]
+//     pub token_0_vault: UncheckedAccount<'info>,
     
-    /// CHECK: Token_1 vault for the pool, init by cp-swap
-    #[account(
-        mut,
-        seeds = [
-            POOL_VAULT_SEED.as_bytes(),
-            pool_state.key().as_ref(),
-            mint.key().as_ref()
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub token_1_vault: UncheckedAccount<'info>,
+//     /// CHECK: Token_1 vault for the pool, init by cp-swap
+//     #[account(
+//         mut,
+//         seeds = [
+//             POOL_VAULT_SEED.as_bytes(),
+//             pool_state.key().as_ref(),
+//             mint.key().as_ref()
+//         ],
+//         seeds::program = cp_swap_program.key(),
+//         bump,
+//     )]
+//     pub token_1_vault: UncheckedAccount<'info>,
 
-    #[account(
-        mut,
-        address= raydium_cpmm_cpi::create_pool_fee_reveiver::id(),
-    )]
-    pub create_pool_fee: Box<InterfaceAccount<'info, TokenAccount>>,
+//     #[account(
+//         mut,
+//         address= raydium_cpmm_cpi::create_pool_fee_reveiver::id(),
+//     )]
+//     pub create_pool_fee: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// CHECK: an account to store oracle observations, init by cp-swap
-     #[account(
-        mut,
-        seeds = [
-            OBSERVATION_SEED.as_bytes(),
-            pool_state.key().as_ref(),
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub observation_state: UncheckedAccount<'info>,
+//     /// CHECK: an account to store oracle observations, init by cp-swap
+//      #[account(
+//         mut,
+//         seeds = [
+//             OBSERVATION_SEED.as_bytes(),
+//             pool_state.key().as_ref(),
+//         ],
+//         seeds::program = cp_swap_program.key(),
+//         bump,
+//     )]
+//     pub observation_state: UncheckedAccount<'info>,
 
-    pub token_program: Program<'info, Token>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>
+//     pub token_program: Program<'info, Token>,
+//     pub associated_token_program: Program<'info, AssociatedToken>,
+//     pub system_program: Program<'info, System>,
+//     pub rent: Sysvar<'info, Rent>
 
-}
+// }
 
-impl <'info> CrateCpmmPool <'info> {
-    pub fn create_cpmm_pool(&mut self) -> Result<()> {
+// impl <'info> CrateCpmmPool <'info> {
+//     pub fn create_cpmm_pool(&mut self) -> Result<()> {
 
-        let bonding_curve_sol = self.vault.get_lamports();
+//         let bonding_curve_sol = self.vault.get_lamports();
 
-        let seeds = &[
-            CURVE_VAULT,
-            &self.mint.to_account_info().key.as_ref(),
-            &[self.bonding_curve.vault_bump],
-        ];
+//         let seeds = &[
+//             CURVE_VAULT,
+//             &self.mint.to_account_info().key.as_ref(),
+//             &[self.bonding_curve.vault_bump],
+//         ];
 
-        let signer_seeds = &[&seeds[..]];
+//         let signer_seeds = &[&seeds[..]];
 
-        let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
+//         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
-        let cpi_accounts = Transfer {
-            from: self.vault.to_account_info(),
-            to: self.fee_recipient.to_account_info(),
-        };
+//         let cpi_accounts = Transfer {
+//             from: self.vault.to_account_info(),
+//             to: self.fee_recipient.to_account_info(),
+//         };
 
-        let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+//         let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
-        transfer(ctx, MIGRATION_FEE)?;
+//         transfer(ctx, MIGRATION_FEE)?;
 
-        let init_amount_0 = bonding_curve_sol.checked_sub(MIGRATION_FEE).ok_or(Errors::Underflow)?;
-        let init_amount_1 = DEFAULT_SUPPLY;
-        let open_time = Clock::get()?.unix_timestamp as u64;
+//         let init_amount_0 = bonding_curve_sol.checked_sub(MIGRATION_FEE).ok_or(Errors::Underflow)?;
+//         let init_amount_1 = DEFAULT_SUPPLY;
+//         let open_time = Clock::get()?.unix_timestamp as u64;
 
-        let accounts = cpi::accounts::Initialize{
-            creator: self.authority.to_account_info(),
-            amm_config: self.amm_config.to_account_info(),
-            authority: self.radium_authority.to_account_info(),
-            pool_state: self.pool_state.to_account_info(),
-            token_0_mint: self.base_mint.to_account_info(),
-            token_1_mint: self.mint.to_account_info(),
-            lp_mint: self.lp_mint.to_account_info(),
-            creator_token_0: self.vault.to_account_info(),
-            creator_token_1: self.bonding_curve_ata.to_account_info(),
-            creator_lp_token: self.creator_lp_token.to_account_info(),
-            token_0_vault: self.token_0_vault.to_account_info(),
-            token_1_vault: self.token_1_vault.to_account_info(),
-            create_pool_fee: self.create_pool_fee.to_account_info(),
-            observation_state: self.observation_state.to_account_info(),
-            token_program: self.token_program.to_account_info(),
-            token_0_program: self.token_program.to_account_info(),
-            token_1_program: self.token_program.to_account_info(),
-            associated_token_program: self.associated_token_program.to_account_info(),
-            system_program: self.system_program.to_account_info(),
-            rent: self.rent.to_account_info(),
-        };
+//         let accounts = cpi::accounts::Initialize{
+//             creator: self.authority.to_account_info(),
+//             amm_config: self.amm_config.to_account_info(),
+//             authority: self.radium_authority.to_account_info(),
+//             pool_state: self.pool_state.to_account_info(),
+//             token_0_mint: self.base_mint.to_account_info(),
+//             token_1_mint: self.mint.to_account_info(),
+//             lp_mint: self.lp_mint.to_account_info(),
+//             creator_token_0: self.vault.to_account_info(),
+//             creator_token_1: self.bonding_curve_ata.to_account_info(),
+//             creator_lp_token: self.creator_lp_token.to_account_info(),
+//             token_0_vault: self.token_0_vault.to_account_info(),
+//             token_1_vault: self.token_1_vault.to_account_info(),
+//             create_pool_fee: self.create_pool_fee.to_account_info(),
+//             observation_state: self.observation_state.to_account_info(),
+//             token_program: self.token_program.to_account_info(),
+//             token_0_program: self.token_program.to_account_info(),
+//             token_1_program: self.token_program.to_account_info(),
+//             associated_token_program: self.associated_token_program.to_account_info(),
+//             system_program: self.system_program.to_account_info(),
+//             rent: self.rent.to_account_info(),
+//         };
 
-        let cpi_context = CpiContext::new(
-            self.cp_swap_program.to_account_info(),
-            accounts,
-        );
+//         let cpi_context = CpiContext::new(
+//             self.cp_swap_program.to_account_info(),
+//             accounts,
+//         );
 
-        cpi::initialize(cpi_context, init_amount_0, init_amount_1, open_time)
-    }
-}
+//         cpi::initialize(cpi_context, init_amount_0, init_amount_1, open_time)
+//     }
+// }

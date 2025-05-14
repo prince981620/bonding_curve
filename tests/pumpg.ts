@@ -87,7 +87,9 @@ describe("pumpg", async () => {
   let buyer2Ata: PublicKey;
   let admin_ata: PublicKey;
 
-  const mintadd = Keypair.generate();
+  // const mintadd = Keypair.generate();
+
+  const mintadd = new PublicKey("4vU4xV77PEozDhJBK4fu4WVqfRF7RKMZWDEkGEgkmdc7")
   
   let listenerIds: number[] = [];
 

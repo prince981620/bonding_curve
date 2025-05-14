@@ -13,7 +13,7 @@ pub use state::*;
 pub use events::*;
 pub use utils::*;
 
-declare_id!("3cNHnRg5bF6ahpkMfwzAV6tFtjeQWywt53M5cGaU3eA4");
+declare_id!("4ZYeZiZEeAd2oyHKVsMX48z7AjVsyrVE7x2D5s8DMuqt");
 
 #[program]
 pub mod pumpg {

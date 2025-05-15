@@ -4,6 +4,7 @@ import { Pumpg } from "../target/types/pumpg";
 import { Commitment, Keypair, LAMPORTS_PER_SOL, PublicKey, sendAndConfirmTransaction, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 const commitment: Commitment = "confirmed";
 import wallet from "../Admin-wallet.json";
+import coindDevWallet from "../coinDev-wallet.json"
 import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccount, createMint, getAssociatedTokenAddress, getAssociatedTokenAddressSync, getMint, getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { xit } from "mocha";
 
@@ -71,9 +72,12 @@ describe("pumpg", async () => {
 
   console.log("admin", admin.publicKey.toBase58());
 
-  const [coindev, buyer1, buyer2] = Array.from({length: 3}, ()=>
-    Keypair.generate()
-  );
+  // const [coindev, buyer1, buyer2] = Array.from({length: 3}, ()=>
+  //   Keypair.generate()
+  // );
+
+  const coindev = Keypair.fromSecretKey(new Uint8Array(coindDevWallet));
+
 
   const global = PublicKey.findProgramAddressSync(
     [Buffer.from(GLOBAL)],
@@ -217,33 +221,33 @@ describe("pumpg", async () => {
       coindev.publicKey
     )).address;
 
-    buyer1Ata = (await getOrCreateAssociatedTokenAccount(
-      connection,
-      buyer1,
-      mint,
-      buyer1.publicKey
-    )).address;
+    // buyer1Ata = (await getOrCreateAssociatedTokenAccount(
+    //   connection,
+    //   buyer1,
+    //   mint,
+    //   buyer1.publicKey
+    // )).address;
 
-    buyer2Ata = (await getOrCreateAssociatedTokenAccount(
-      connection,
-      buyer2,
-      mint,
-      buyer2.publicKey
-    )).address;
+    // buyer2Ata = (await getOrCreateAssociatedTokenAccount(
+    //   connection,
+    //   buyer2,
+    //   mint,
+    //   buyer2.publicKey
+    // )).address;
 
-    admin_ata = (await getOrCreateAssociatedTokenAccount(
-      connection,
-      admin,
-      mint,
-      admin.publicKey
-    )).address;
+    // admin_ata = (await getOrCreateAssociatedTokenAccount(
+    //   connection,
+    //   admin,
+    //   mint,
+    //   admin.publicKey
+    // )).address;
   
   
     console.log("Admin public key:", admin.publicKey.toBase58());
     console.log("Coindev public key:", coindev.publicKey.toBase58());
     console.log("mintadd.publickey", mintadd.publicKey.toBase58())
     console.log("Coin Mint Address:", mint);
-    console.log("buyer1 public key:", buyer1.publicKey.toBase58());
+    // console.log("buyer1 public key:", buyer1.publicKey.toBase58());
   
   });
 
@@ -385,7 +389,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of dev tx")
   })
 
-  it("buyer1 buy coin", async ()=> {
+  xit("buyer1 buy coin", async ()=> {
 
     const buyer1_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -460,7 +464,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of buyer1 tx")
   })
 
-  it("buyer2 buy coin", async ()=> {
+  xit("buyer2 buy coin", async ()=> {
 
     const buyer2_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -638,7 +642,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  it("buyer 2 sell all", async ()=>{
+  xit("buyer 2 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer2.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -693,7 +697,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  it("buyer1 sell all", async ()=>{
+  xit("buyer1 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 

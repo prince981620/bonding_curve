@@ -68,4 +68,12 @@ pub mod pumpg {
         ctx.accounts.withdraw_funds()
     }
 
+    pub fn transfer_and_wrap_sol(ctx: Context<TransferSol>) -> Result<()> {
+        ctx.accounts.transfer_and_wrap_sol()
+    }
+
+    pub fn migrate(ctx: Context<CrateCpmmPool>) -> Result<()> {
+        ctx.accounts.create_cpmm_pool()
+    }
+
 }

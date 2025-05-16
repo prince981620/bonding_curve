@@ -19,12 +19,13 @@ pub struct Create<'info> {
     pub payer: Signer<'info>,
 
     #[account(
-        mut,
+        init,
+        payer = payer,
         mint::decimals = 6,
         mint::authority = bonding_curve,
         mint::token_program = token_program,
     )]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
@@ -53,7 +54,7 @@ pub struct Create<'info> {
     pub global: Account<'info, Global>,
     /// CHECK: New Metaplex Account being created
     #[account(mut)]
-    pub metadata: AccountInfo<'info>,
+    pub metadata: UncheckedAccount<'info>, // pub metadata: AccountInfo<'info>, if this anything got wrong
     
     pub mpl_metadata_program: Program<'info, Metadata>,
     pub associated_token_program: Program<'info, AssociatedToken>,

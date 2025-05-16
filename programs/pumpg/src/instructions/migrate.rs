@@ -14,7 +14,7 @@ use raydium_cpmm_cpi::{
 use crate::{errors::Errors, BondingCurve, Global, BONDING_CURVE, DEFAULT_DECIMALS, DEFAULT_SUPPLY, GLOBAL, WSOL_ID};
 
 #[derive(Accounts)]
-pub struct CrateCpmmPool <'info> {
+pub struct CreateCpmmPool <'info> {
 
     pub cp_swap_program: Program <'info, RaydiumCpmm>,
 
@@ -49,10 +49,11 @@ pub struct CrateCpmmPool <'info> {
 
     #[account(
         mut,
-        associated_token::mint = mint,
-        associated_token::authority = bonding_curve,
+        token::mint = mint,
+        token::authority = authority,
+        token::token_program = token_program    
     )]
-    pub bonding_curve_ata: Account<'info, TokenAccount>, // token ata
+    pub creater_token_ata: Account<'info, TokenAccount>, // token ata
 
     pub amm_config: Box<Account<'info, AmmConfig>>,
 
@@ -64,7 +65,7 @@ pub struct CrateCpmmPool <'info> {
         seeds::program = cp_swap_program.key(),
         bump,
     )]
-    pub user_radium_authority: UncheckedAccount<'info>,
+    pub radium_authority: UncheckedAccount<'info>,
     
     /// CHECK: Initialize an account to store the pool state, init by cp-swap
     #[account(
@@ -164,7 +165,7 @@ pub struct CrateCpmmPool <'info> {
 
 }
 
-impl <'info> CrateCpmmPool <'info> {
+impl <'info> CreateCpmmPool <'info> {
     pub fn create_cpmm_pool(&mut self) -> Result<()> {
 
         let init_amount_0 = self.creator_base_ata.amount;
@@ -174,13 +175,13 @@ impl <'info> CrateCpmmPool <'info> {
         let accounts = cpi::accounts::Initialize{
             creator: self.authority.to_account_info(),
             amm_config: self.amm_config.to_account_info(),
-            authority: self.user_radium_authority.to_account_info(),
+            authority: self.radium_authority.to_account_info(),
             pool_state: self.pool_state.to_account_info(),
             token_0_mint: self.base_mint.to_account_info(),
             token_1_mint: self.mint.to_account_info(),
             lp_mint: self.lp_mint.to_account_info(),
             creator_token_0: self.creator_base_ata.to_account_info(),
-            creator_token_1: self.bonding_curve_ata.to_account_info(),
+            creator_token_1: self.creater_token_ata.to_account_info(),
             creator_lp_token: self.creator_lp_token.to_account_info(),
             token_0_vault: self.token_0_vault.to_account_info(),
             token_1_vault: self.token_1_vault.to_account_info(),

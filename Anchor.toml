@@ -5,14 +5,15 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.devnet]
+[programs.localnet]
 pumpg = "4ZYeZiZEeAd2oyHKVsMX48z7AjVsyrVE7x2D5s8DMuqt"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "https://few-twilight-wish.solana-devnet.quiknode.pro/5337a237aaeecd58b8c43a375c78a541aafccf04"
+cluster = "localnet"
+# cluster = "https://few-twilight-wish.solana-devnet.quiknode.pro/5337a237aaeecd58b8c43a375c78a541aafccf04"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
@@ -31,3 +32,28 @@ rpc_port = 8899
 
 [[test.validator.clone]]
 address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+
+# cp-swap program in mainnet
+[[test.validator.clone]]
+address = "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"
+
+# cp-swap create_pool_fee_reveiver in mainnet
+[[test.validator.clone]]
+address = "DNXgeM9EiiaAbaWvwjHj9fQQLAX5ZsfHyvmYUNRAdNC8"
+
+# cp-swap ammConfig in mainnet
+[[test.validator.clone]]
+address = "D4FPEruKEHrG5TenZ2mpDGEfu1iUvTiqBxvpU8HLBvC2"
+
+# raydium-locking program in mainnet
+[[test.validator.clone]]
+address = "LockrWmn6K5twhz3y9w1dQERbmgSaRkfnTeTKbpofwE"
+
+# raydium-locking authority in mainnet
+[[test.validator.clone]]
+address = "3f7GcQFG397GAaEnv51zR6tsTVihYRydnydDD1cXekxH"
+
+# metadata program in mainnet
+[[test.validator.clone]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+

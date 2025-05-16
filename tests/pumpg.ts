@@ -4,8 +4,9 @@ import { Pumpg } from "../target/types/pumpg";
 import { Commitment, Keypair, LAMPORTS_PER_SOL, PublicKey, sendAndConfirmTransaction, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 const commitment: Commitment = "confirmed";
 import wallet from "../Admin-wallet.json";
+import user from "../Users-wallet.json"
 import coindDevWallet from "../coinDev-wallet.json"
-import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccount, createMint, getAssociatedTokenAddress, getAssociatedTokenAddressSync, getMint, getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccount, createMint, createMintToCheckedInstruction, getAssociatedTokenAddress, getAssociatedTokenAddressSync, getMint, getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { xit } from "mocha";
 
 describe("pumpg", async () => {
@@ -66,17 +67,60 @@ describe("pumpg", async () => {
 
   const CURVE_VAULT:string = "curve-vault";
 
+  // Address of the Raydium Cpmm program on devnet
+  const CPMM_PROGRAM_ID = new anchor.web3.PublicKey(
+    "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"
+  );
+  // Address of the Locking CPMM program on devnet
+  const LOCK_CPMM_PROGRAM_ID = new anchor.web3.PublicKey(
+    "LockrWmn6K5twhz3y9w1dQERbmgSaRkfnTeTKbpofwE"
+  );
+
+  // Address of the Locking CPMM program on devnet
+  const LOCK_CPMM_AUTHORITY_ID = new anchor.web3.PublicKey(
+    "3f7GcQFG397GAaEnv51zR6tsTVihYRydnydDD1cXekxH"
+  );
+
+  // Address of the Raydium AMM configuration account on mainnet
+  const AMM_CONFIG_ID = new anchor.web3.PublicKey(
+    "D4FPEruKEHrG5TenZ2mpDGEfu1iUvTiqBxvpU8HLBvC2"
+  );
+
+  const MEMO_PROGRAM = new anchor.web3.PublicKey(
+    "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+  );
+
+  // Address of the Rent program
+  const RENT_PROGRAM = anchor.web3.SYSVAR_RENT_PUBKEY;
+
+  // Create pool fee receiver
+  // Mainnet DNXgeM9EiiaAbaWvwjHj9fQQLAX5ZsfHyvmYUNRAdNC8
+  // Devnet G11FKBRaAkHAKuLCgLM6K6NUc9rTjPAznRCjZifrTQe2
+  const create_pool_fee = new anchor.web3.PublicKey(
+    "DNXgeM9EiiaAbaWvwjHj9fQQLAX5ZsfHyvmYUNRAdNC8"
+  );
+
+  const WSOL_ID = new anchor.web3.PublicKey(
+    "So11111111111111111111111111111111111111112"
+  );
+
+  const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
+    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+  );
+
 
 
   const admin = Keypair.fromSecretKey(new Uint8Array(wallet));
 
+  // const user = Keypair.fromSecretKey()
+
   console.log("admin", admin.publicKey.toBase58());
 
-  // const [coindev, buyer1, buyer2] = Array.from({length: 3}, ()=>
-  //   Keypair.generate()
-  // );
+  const [coindev, buyer1, buyer2] = Array.from({length: 3}, ()=>
+    Keypair.generate()
+  );
 
-  const coindev = Keypair.fromSecretKey(new Uint8Array(coindDevWallet));
+  // const coindev = Keypair.fromSecretKey(new Uint8Array(coindDevWallet));
 
 
   const global = PublicKey.findProgramAddressSync(
@@ -86,9 +130,7 @@ describe("pumpg", async () => {
 
   console.log("global", global);
 
-  const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
-    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
-  );
+  const fee_receipent = new PublicKey("DKbqMnDju2ftYBKM65DhPMLi7foVt5QPmbCmeeTk5eSN");
 
   let mint: PublicKey;
   let bonding_curve: PublicKey;
@@ -99,8 +141,10 @@ describe("pumpg", async () => {
   let buyer1Ata: PublicKey;
   let buyer2Ata: PublicKey;
   let admin_ata: PublicKey;
+  let admin_wsol_ata: PublicKey;
 
   const mintadd = Keypair.generate();
+
 
   console.log(mintadd);
 
@@ -151,9 +195,9 @@ describe("pumpg", async () => {
 
   it("Airdrop and create Mints", async()=>{
 
-    // await Promise.all([admin, coindev, buyer1, buyer2].map(async (k) => {
-    //   return await anchor.getProvider().connection.requestAirdrop(k.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL)
-    // })).then(confirmTxs);
+    await Promise.all([admin, coindev, buyer1, buyer2].map(async (k) => {
+      return await anchor.getProvider().connection.requestAirdrop(k.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL)
+    })).then(confirmTxs);
 
     const balance = await connection.getBalance(admin.publicKey)
         console.log(`Balance: ${balance}`)
@@ -194,14 +238,18 @@ describe("pumpg", async () => {
 
     console.log("vault", vault);
 
-    mint = await createMint(
-      connection,
-      coindev,
-      bonding_curve,
-      null,
-      6,
-      mintadd
-    );
+    // mint = await createMint(
+    //   connection,
+    //   coindev,
+    //   bonding_curve,
+    //   null,
+    //   6,
+    //   mintadd
+    // );
+
+    mint = mintadd.publicKey;
+
+    console.log("mint", mint);
 
     bonding_curve_ata = await getAssociatedTokenAddress(mint, bonding_curve, true);
   
@@ -214,12 +262,6 @@ describe("pumpg", async () => {
       TOKEN_METADATA_PROGRAM_ID
     )[0];
 
-    devAta = (await getOrCreateAssociatedTokenAccount(
-      connection,
-      coindev,
-      mint,
-      coindev.publicKey
-    )).address;
 
     // buyer1Ata = (await getOrCreateAssociatedTokenAccount(
     //   connection,
@@ -235,12 +277,6 @@ describe("pumpg", async () => {
     //   buyer2.publicKey
     // )).address;
 
-    // admin_ata = (await getOrCreateAssociatedTokenAccount(
-    //   connection,
-    //   admin,
-    //   mint,
-    //   admin.publicKey
-    // )).address;
   
   
     console.log("Admin public key:", admin.publicKey.toBase58());
@@ -251,7 +287,7 @@ describe("pumpg", async () => {
   
   });
 
-  xit("Is initialized!", async () => {
+  it("Is initialized!", async () => {
 
     // const globalAccount = await program.account.global.fetchNullable(global);
 
@@ -310,7 +346,7 @@ describe("pumpg", async () => {
       rent: SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId
     })
-    .signers([coindev])
+    .signers([coindev,mintadd])
     .rpc()
     // .then(confirm)
     // .then(log);
@@ -319,7 +355,14 @@ describe("pumpg", async () => {
 
   })
 
-  it("Dev buy coin", async ()=> {
+  xit("Dev buy coin", async ()=> {
+
+    devAta = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      coindev,
+      mint,
+      coindev.publicKey
+    )).address;
 
     
 
@@ -343,8 +386,8 @@ describe("pumpg", async () => {
     //   await provider.connection.getTokenAccountBalance(bonding_curve_ata);
 
 
-    const amount = new anchor.BN(66_930_000_000_000); // 1 M token as decimal = 6
-    const maxsolcost = new anchor.BN(2_000_000_000); // 1 sol
+    const amount = new anchor.BN(793_200_000_000_000); // 1 M token as decimal = 6
+    const maxsolcost = new anchor.BN(92_000_000_000); // 1 sol
     const tx = await program.methods.buy(
       amount,
       maxsolcost
@@ -540,7 +583,7 @@ describe("pumpg", async () => {
 
   })
 
-  it("Dev sell all", async ()=>{
+  xit("Dev sell all", async ()=>{
     const initalSOl = await connection.getBalance(coindev.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -917,6 +960,62 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
+
+  xit("transfer and wrap sol", async ()=>{
+
+    admin_ata = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      admin,
+      mint,
+      admin.publicKey
+    )).address;
+
+    admin_wsol_ata = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      admin,
+      WSOL_ID,
+      admin.publicKey
+    )).address;
+
+    let tx = await program.methods
+          .transferAndWrapSol()
+          .accountsStrict({
+            authority: admin.publicKey,
+            global: global,
+            feeRecipient: fee_receipent,
+            bondingCurve: bonding_curve,
+            vault: vault,
+            bondingCurveAta: bonding_curve_ata,
+            userWsolAta: admin_wsol_ata,
+            userAta: admin_ata,
+            wsolMint: WSOL_ID,
+            mint: mint,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: anchor.web3.SystemProgram.programId
+          })
+          .signers([admin])
+          .rpc()
+          // .then(confirm)
+          // .then(log)
+    console.log("transfer and wrap sol tx", tx);
+
+
+
+    console.log("--------------------------------- end of tx")
+
+  })
+
+  // it("Migrate to Raydium", async()=>{
+  //   let tx = await program.methods
+  //         .migrate()
+  //         .accountsStrict({
+  //           cpSwapProgram: CPMM_PROGRAM_ID,
+
+  //         })
+  // })
+
+
 
 
   after("cleanup event listeners", async () => {

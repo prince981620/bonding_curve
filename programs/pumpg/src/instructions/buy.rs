@@ -72,9 +72,9 @@ impl <'info> Buy <'info> {
 
         //  check remaining allowed input must be under the max sol cost
 
-        require!(amount > 0 && amount <= u64::MAX, Errors::Overflow); // use forever
+        require!(amount > 0, Errors::Underflow); // use forever
 
-        require!(max_sol_cost > 0 , Errors::Overflow);
+        require!(max_sol_cost > 0 , Errors::Underflow);
 
 
         let bonding_curve = &mut self.bonding_curve;
@@ -119,7 +119,7 @@ impl <'info> Buy <'info> {
             self.bonding_curve.complete = true;
         }
 
-        self.update_bonding_curve(delta_s, amount, s_new, t_new)?;
+        self.update_bonding_curve(delta_s, t_new, s_new, t_new)?;
 
         
         emit!(TokenPurchased {

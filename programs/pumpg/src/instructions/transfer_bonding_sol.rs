@@ -4,7 +4,7 @@ use anchor_lang::{prelude::*,
 
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{sync_native, Mint, SyncNative, Token, TokenAccount}
+    token::{sync_native, Mint, SyncNative, Token, TokenAccount, transfer_checked, TransferChecked}
 };
 
 use crate::{errors::Errors, BondingCurve, Global, BONDING_CURVE, CURVE_VAULT, GLOBAL, MIGRATION_FEE, WSOL_ID};
@@ -42,6 +42,13 @@ pub struct TransferSol  <'info> {
 
     #[account(
         mut,
+        associated_token::mint = mint,
+        associated_token::authority = bonding_curve,
+    )]
+    pub bonding_curve_ata: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
         token::mint = wsol_mint,
         token::authority = authority,
         token::token_program = token_program    
@@ -50,9 +57,19 @@ pub struct TransferSol  <'info> {
 
     #[account(
         mut,
+        token::mint = mint,
+        token::authority = authority,
+        token::token_program = token_program    
+    )]
+    pub user_ata: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
         address = WSOL_ID
     )]
     pub wsol_mint: Box<Account<'info, Mint>>,
+
+    pub mint: Account<'info, Mint>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -60,24 +77,41 @@ pub struct TransferSol  <'info> {
 }
 
 impl <'info> TransferSol <'info> {
-    // pub fn withdraw_funds(&mut self) -> Result<()> {
 
+    pub fn prepare_for_migration(&mut self) -> Result<()> {
+        self.withdraw_token()?;
+        self.transfer_and_wrap_sol()?;
 
-    //     let remaining_sol = self.vault.get_lamports();
+        Ok(())
+    }
 
+    pub fn withdraw_token (&mut self) -> Result<()> {
 
+        let remaining_token = self.bonding_curve_ata.amount;
 
-    //     self.withdraw_sol(remaining_sol)?;
+        let cpi_program = self.token_program.to_account_info();
 
-    //     // emit!(FundsWithdrawn {
-    //     //     mint: self.mint.key(),
-    //     //     user: self.authority.key(),
-    //     //     tokens_withdrawn: remaining_tokens,
-    //     //     sol_withdrawn: remaining_sol,
-    //     // });
+        let cpi_account = TransferChecked {
+            from: self.bonding_curve_ata.to_account_info(),
+            mint: self.mint.to_account_info(),
+            to: self.user_ata.to_account_info(),
+            authority: self.bonding_curve.to_account_info(),
+        };
 
-    //     Ok(())
-    // }
+        let seeds = &[
+            BONDING_CURVE,
+            &self.mint.to_account_info().key.as_ref(),
+            &[self.bonding_curve.bump],
+        ];
+
+        let signer_seeds = &[&seeds[..]];
+
+        let ctx = CpiContext::new_with_signer(cpi_program, cpi_account, signer_seeds);
+
+        transfer_checked(ctx, remaining_token, 6)
+
+    }
+
 
     pub fn transfer_and_wrap_sol (&mut self) -> Result<()> {
 

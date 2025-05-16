@@ -69,10 +69,10 @@ pub mod pumpg {
     }
 
     pub fn transfer_and_wrap_sol(ctx: Context<TransferSol>) -> Result<()> {
-        ctx.accounts.transfer_and_wrap_sol()
+        ctx.accounts.prepare_for_migration()
     }
 
-    pub fn migrate(ctx: Context<CrateCpmmPool>) -> Result<()> {
+    pub fn migrate(ctx: Context<CreateCpmmPool>) -> Result<()> {
         ctx.accounts.create_cpmm_pool()
     }
 

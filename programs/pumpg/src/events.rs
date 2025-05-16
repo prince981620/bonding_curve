@@ -51,3 +51,12 @@ pub struct FundsWithdrawn {
     pub tokens_withdrawn: u64,
     pub sol_withdrawn: u64,
 }
+
+#[event]
+pub struct BondingCurveCompleted {
+    pub mint: Pubkey,
+    pub user: Pubkey,
+    pub tokens_withdrawn: u64,
+    pub sol_withdrawn: u64,
+}
+

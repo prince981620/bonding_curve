@@ -26,7 +26,6 @@ pub struct CreateCpmmPool <'info> {
 
     #[account(
         mint::decimals = DEFAULT_DECIMALS,
-        mint::authority = bonding_curve, //change this to bonding curve
         mint::token_program = token_program,
     )]
     pub mint: Account<'info, Mint>,
@@ -34,8 +33,7 @@ pub struct CreateCpmmPool <'info> {
     #[account(
         mut,
         address = WSOL_ID,
-        mint::decimals = DEFAULT_DECIMALS,
-        mint::authority = bonding_curve, //change this to bonding curve
+        mint::decimals = 9,
         mint::token_program = token_program,
     )]
     pub base_mint: Account<'info, Mint>,
@@ -169,7 +167,7 @@ impl <'info> CreateCpmmPool <'info> {
     pub fn create_cpmm_pool(&mut self) -> Result<()> {
 
         let init_amount_0 = self.creator_base_ata.amount;
-        let init_amount_1 = DEFAULT_SUPPLY;
+        let init_amount_1 = self.creater_token_ata.amount;
         let open_time = Clock::get()?.unix_timestamp as u64;
 
         let accounts = cpi::accounts::Initialize{

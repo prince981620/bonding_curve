@@ -11,7 +11,7 @@ use raydium_cpmm_cpi::{
     states::{AmmConfig, OBSERVATION_SEED, POOL_LP_MINT_SEED, POOL_SEED, POOL_VAULT_SEED},
 };
 
-use crate::{errors::Errors, BondingCurve, Global, BONDING_CURVE, DEFAULT_DECIMALS, DEFAULT_SUPPLY, GLOBAL, WSOL_ID};
+use crate::{errors::Errors, BondingCurve, Global, BONDING_CURVE, DEFAULT_DECIMALS, GLOBAL, WSOL_ID};
 
 #[derive(Accounts)]
 pub struct CreateCpmmPool <'info> {

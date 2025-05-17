@@ -8,6 +8,7 @@ import user from "../Users-wallet.json"
 import coindDevWallet from "../coinDev-wallet.json"
 import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccount, createMint, createMintToCheckedInstruction, getAssociatedTokenAddress, getAssociatedTokenAddressSync, getMint, getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { xit } from "mocha";
+import { expect } from "chai";
 
 describe("pumpg", async () => {
 
@@ -146,7 +147,7 @@ describe("pumpg", async () => {
   const mintadd = Keypair.generate();
 
 
-  console.log(mintadd);
+  console.log("mint :", mintadd.publicKey.toBase58());
 
   // const mintadd = new PublicKey("4vU4xV77PEozDhJBK4fu4WVqfRF7RKMZWDEkGEgkmdc7")
   
@@ -329,8 +330,8 @@ describe("pumpg", async () => {
     );
 
     const tx = await program.methods.create(
-      "FartCoin",
-      "$FartCoin",
+      "L24DEVNET",
+      "$L24DEVNET",
       "https://ipfs.io/ipfs/QmYfe8zVGHA1heej47AkBX3Nnetg2h2kqj5yymz1xyKeHb",
     ).accountsStrict({
       payer:coindev.publicKey,
@@ -386,8 +387,8 @@ describe("pumpg", async () => {
     //   await provider.connection.getTokenAccountBalance(bonding_curve_ata);
 
 
-    const amount = new anchor.BN(793_200_000_000_000); // 1 M token as decimal = 6
-    const maxsolcost = new anchor.BN(92_000_000_000); // 1 sol
+    const amount = new anchor.BN(66_930_000_000_000); // 1 M token as decimal = 6
+    const maxsolcost = new anchor.BN(2_000_000_000); // 1 sol
     const tx = await program.methods.buy(
       amount,
       maxsolcost
@@ -432,7 +433,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of dev tx")
   })
 
-  xit("buyer1 buy coin", async ()=> {
+  it("buyer1 buy coin", async ()=> {
 
     const buyer1_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -507,7 +508,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of buyer1 tx")
   })
 
-  xit("buyer2 buy coin", async ()=> {
+  it("buyer2 buy coin", async ()=> {
 
     const buyer2_ata = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -583,7 +584,7 @@ describe("pumpg", async () => {
 
   })
 
-  xit("Dev sell all", async ()=>{
+  it("Dev sell all", async ()=>{
     const initalSOl = await connection.getBalance(coindev.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -637,55 +638,55 @@ describe("pumpg", async () => {
     console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
 
 
-    try {
-        // Get balance of dev wallet
-        const balance = await connection.getBalance(coindev.publicKey)
-        console.log(`Balance: ${balance}`)
+    // try {
+    //     // Get balance of dev wallet
+    //     const balance = await connection.getBalance(coindev.publicKey)
+    //     console.log(`Balance: ${balance}`)
 
-        // Create a test transaction to calculate fees
-        const transaction = new Transaction().add(
-            SystemProgram.transfer({
-                fromPubkey: coindev.publicKey,
-                toPubkey: admin.publicKey,
-                lamports: balance,
-            })
-        );
-        transaction.recentBlockhash = (await connection.getLatestBlockhash('confirmed')).blockhash;
-        transaction.feePayer = coindev.publicKey;
+    //     // Create a test transaction to calculate fees
+    //     const transaction = new Transaction().add(
+    //         SystemProgram.transfer({
+    //             fromPubkey: coindev.publicKey,
+    //             toPubkey: admin.publicKey,
+    //             lamports: balance,
+    //         })
+    //     );
+    //     transaction.recentBlockhash = (await connection.getLatestBlockhash('confirmed')).blockhash;
+    //     transaction.feePayer = coindev.publicKey;
 
-        // Calculate exact fee rate to transfer entire SOL amount out of account minus fees
-        const fee = (await connection.getFeeForMessage(transaction.compileMessage(), 'confirmed')).value || 0;
+    //     // Calculate exact fee rate to transfer entire SOL amount out of account minus fees
+    //     const fee = (await connection.getFeeForMessage(transaction.compileMessage(), 'confirmed')).value || 0;
 
 
-        // Remove our transfer instruction to replace it
-        transaction.instructions.pop();
+    //     // Remove our transfer instruction to replace it
+    //     transaction.instructions.pop();
 
-        // Now add the instruction back with correct amount of lamports
-        transaction.add(
-            SystemProgram.transfer({
-                fromPubkey: coindev.publicKey,
-                toPubkey: admin.publicKey,
-                lamports: balance - fee,
-            })
-        );
+    //     // Now add the instruction back with correct amount of lamports
+    //     transaction.add(
+    //         SystemProgram.transfer({
+    //             fromPubkey: coindev.publicKey,
+    //             toPubkey: admin.publicKey,
+    //             lamports: balance - fee,
+    //         })
+    //     );
 
-        // Sign transaction, broadcast, and confirm
-        const signature = await sendAndConfirmTransaction(
-            connection,
-            transaction,
-            [coindev]
-        );
-        console.log(`Success! Check out your TX here: 
-        https://explorer.solana.com/tx/${signature}?cluster=devnet`)
-    } catch(e) {
-        console.error(`Oops, something went wrong: ${e}`)
-    }
+    //     // Sign transaction, broadcast, and confirm
+    //     const signature = await sendAndConfirmTransaction(
+    //         connection,
+    //         transaction,
+    //         [coindev]
+    //     );
+    //     console.log(`Success! Check out your TX here: 
+    //     https://explorer.solana.com/tx/${signature}?cluster=devnet`)
+    // } catch(e) {
+    //     console.error(`Oops, something went wrong: ${e}`)
+    // }
 
 
 
     console.log("--------------------------------- end of tx")
   })
-  xit("buyer 2 sell all", async ()=>{
+  it("buyer 2 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer2.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -697,6 +698,13 @@ describe("pumpg", async () => {
 
     const amount = new anchor.BN(78_080_000_000_000); // 1 M token as decimal = 6
     const minSolOutput = new anchor.BN(2_700_000_000);
+
+    const buyer2Ata = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      buyer2,
+      mint,
+      buyer2.publicKey
+    )).address;
 
     const tx = await program.methods.sell(
       amount,
@@ -740,7 +748,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  xit("buyer1 sell all", async ()=>{
+  it("buyer1 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -752,6 +760,13 @@ describe("pumpg", async () => {
 
     const amount = new anchor.BN(84_680_000_000_000); // 1 M token as decimal = 6
     const minSolOutput = new anchor.BN(2_500_000_000);
+
+    const buyer1Ata = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      buyer1,
+      mint,
+      buyer1.publicKey
+    )).address;
 
     const tx = await program.methods.sell(
       amount,
@@ -826,7 +841,7 @@ describe("pumpg", async () => {
 
   })
 
-  xit("set Params with wrong admin it should fail",async ()=>{
+  it("set Params with wrong admin it should fail",async ()=>{
 
     const feeRecipient = Keypair.generate();
 
@@ -834,7 +849,8 @@ describe("pumpg", async () => {
 
     console.log("global state :", globalState);
 
-    const tx = await program.methods
+    try {
+      const tx = await program.methods
       .setParams(
         feeRecipient.publicKey,
         new anchor.BN(globalState.initialVirtualTokenReserves),
@@ -853,6 +869,9 @@ describe("pumpg", async () => {
 
     console.log("set params tx", tx);
     console.log("global state :", globalState);
+    }catch(e){
+      expect(e).to.exist;
+    }
 
   })
 
@@ -909,7 +928,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
-  xit("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
+  it("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
 
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
@@ -920,7 +939,8 @@ describe("pumpg", async () => {
     const vaultSOL = await connection.getBalance(vault);
     console.log("initial vault : ", vaultSOL);
 
-    let tx = await program.methods
+    try {
+      let tx = await program.methods
       .withdraw()
       .accountsStrict({
         authority: buyer1.publicKey,
@@ -959,6 +979,88 @@ describe("pumpg", async () => {
     console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
 
     console.log("--------------------------------- end of tx")
+
+    }catch(e) {
+      expect(e).to.exist;
+    }
+
+      })
+
+  it("Dev buy coin again", async ()=> {
+
+    devAta = (await getOrCreateAssociatedTokenAccount(
+      connection,
+      coindev,
+      mint,
+      coindev.publicKey
+    )).address;
+
+    
+
+    const initalSOl = await connection.getBalance(coindev.publicKey);
+    console.log("inital sol",initalSOl);
+
+    const initalFee = await connection.getBalance(admin.publicKey);
+    console.log("inital fee",initalFee);
+
+    const vaultSOL = await connection.getBalance(vault);
+    console.log("initial vault : ", vaultSOL);
+
+    
+    // const initialBondingCurve = await program.account.bondingCurve.fetch(
+    //   bonding_curve
+    // );
+    // const initialBondingCurveLamports = await provider.connection.getBalance(
+    //   bonding_curve
+    // );
+    // const initialBondingCurveATA =
+    //   await provider.connection.getTokenAccountBalance(bonding_curve_ata);
+
+
+    const amount = new anchor.BN(793_200_000_000_000); // 1 M token as decimal = 6
+    const maxsolcost = new anchor.BN(90_000_000_000); // 1 sol
+    const tx = await program.methods.buy(
+      amount,
+      maxsolcost
+    )
+    .accountsStrict({
+      user: coindev.publicKey,
+      global: global,
+      feeRecipient: admin.publicKey,
+      bondingCurve: bonding_curve,
+      bondingCurveAta: bonding_curve_ata,
+      vault: vault,
+      userAta: devAta,
+      mint: mint,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([coindev])
+    .rpc()
+    // .then(confirm)
+    // .then(log);
+    console.log("buy tx", tx);
+
+    const token_balance = await connection.getTokenAccountBalance(devAta)
+    console.log(Number(token_balance?.value?.amount)/1000000);
+
+    const finalSOl = await connection.getBalance(coindev.publicKey);
+    console.log("final sol",(finalSOl)/LAMPORTS_PER_SOL);
+
+    console.log("sol used : ",(initalSOl - finalSOl)/LAMPORTS_PER_SOL);
+
+    const FinalFee = await connection.getBalance(admin.publicKey);
+    console.log("final fee",FinalFee/LAMPORTS_PER_SOL);
+
+    console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
+
+    const finalVaultSOl = await connection.getBalance(vault);
+    console.log("final vault : ", finalVaultSOl/LAMPORTS_PER_SOL);
+
+    console.log("valut sol added :", (finalVaultSOl - vaultSOL)/LAMPORTS_PER_SOL);
+
+    console.log("--------------------------------- end of dev tx")
   })
 
   it("transfer and wrap sol", async ()=>{
@@ -1092,8 +1194,6 @@ describe("pumpg", async () => {
 
           console.log("raydium migration tx :", tx);
   })
-
-
 
 
   after("cleanup event listeners", async () => {

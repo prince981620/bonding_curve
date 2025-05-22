@@ -7,7 +7,7 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{compute_s, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, COMPLETION_LAMPORTS, CURVE_VAULT, GLOBAL};
+use crate::{compute_s_out, errors::Errors, BondingCurve, Global, TokenSold, BONDING_CURVE, CURVE_VAULT, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Sell <'info> {
@@ -74,13 +74,24 @@ impl <'info> Sell<'info> {
         // check slippage
         // calculate the varient before and after swap
   
-        let bonding_curve: &mut Account<'info, BondingCurve> = &mut self.bonding_curve;
+        // let bonding_curve: &mut Account<'info, BondingCurve> = &mut self.bonding_curve;
 
         // if bonding_curve.complete {
         //     return Err(Errors::BondingCurveComplete.into());
         // }
 
-        // let t_current = bonding_curve.total_tokens_sold;
+        let t_current = self.bonding_curve.real_token_reserve;
+        let t_new = t_current.checked_add(amount).ok_or(Errors::Underflow)?;
+
+        if t_new > self.global.initial_real_token_reserves {
+            return Err(Errors::Overflow)?;
+        }
+
+        let s_out: u64 = compute_s_out(self.bonding_curve.virtual_token_reserve, self.bonding_curve.virtual_sol_reserve, amount)?;
+
+
+
+
         // let t_new = t_current.checked_sub(amount).ok_or(Errors::Underflow)?;
         // let s_new = compute_s(t_new)?;
         // let s_current = bonding_curve.total_lamports_spent;
@@ -101,15 +112,21 @@ impl <'info> Sell<'info> {
         //     .map_err(|_| Errors::InvalidCalculation)?;
         // let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
 
-        let fee_amount = min_sol_output
+        let fee_amount = s_out
             .checked_mul(self.global.fee_basis_points)
             .unwrap()
             .checked_div(10000_u64)
             .unwrap();
+        
+        if s_out.checked_sub(fee_amount).ok_or(Errors::Underflow).unwrap() < min_sol_output {
+            return Err(Errors::TooLittleSolReceived.into());
+        }
 
         self.send_token(amount)?;
 
-        // self.send_sol(delta_s, fee_amount)?;
+        self.send_sol(s_out, fee_amount)?;
+        
+        self.update_bonding_curve(s_out, amount)?;
 
 
         // self.update_bonding_curve(delta_s, amount, s_new, t_new)?;
@@ -120,7 +137,7 @@ impl <'info> Sell<'info> {
             mint: self.mint.key(),
             user: self.user.key(),
             amount,
-            sol_received: 1_000_000,
+            sol_received: s_out,
             fee: fee_amount,
         });
         
@@ -183,24 +200,36 @@ impl <'info> Sell<'info> {
 
     }
 
-    pub fn update_bonding_curve(&mut self, delta_s_after_fee: u64, amount: u64, s_new: u64, t_new: u64) -> Result<()> {
-        let bonding_curve = &mut self.bonding_curve;
+    pub fn update_bonding_curve(&mut self, s_out: u64, amount: u64) -> Result<()> {
+        
+        // update the v reserves
 
-        bonding_curve.set_inner(BondingCurve {
-            mint: bonding_curve.mint,
-            virtual_token_reserve: bonding_curve.virtual_token_reserve + amount,
-            virtual_sol_reserve: bonding_curve.virtual_sol_reserve - delta_s_after_fee,
-            real_token_reserve: bonding_curve.real_token_reserve + amount,
-            real_sol_reserve: bonding_curve.real_sol_reserve - delta_s_after_fee,
-            token_total_supply: bonding_curve.token_total_supply,
-            complete: s_new >= COMPLETION_LAMPORTS,
-            // total_tokens_sold: t_new,
-            // total_lamports_spent: s_new,
-            initializer: bonding_curve.initializer,
-            bump: bonding_curve.bump,
-            vault_bump: bonding_curve.vault_bump,
-            _padding: [0; 7],
-        });
+        self.bonding_curve.virtual_token_reserve = self.bonding_curve.virtual_token_reserve.checked_add(amount).ok_or(Errors::Underflow)?;
+        self.bonding_curve.virtual_sol_reserve = self.bonding_curve.virtual_sol_reserve.checked_sub(s_out).ok_or(Errors::Underflow)?;
+
+        // update the real reserves
+
+        self.bonding_curve.real_token_reserve = self.bonding_curve.real_token_reserve.checked_add(amount).ok_or(Errors::Underflow)?;
+        self.bonding_curve.real_sol_reserve = self.bonding_curve.real_sol_reserve.checked_sub(s_out).ok_or(Errors::Overflow)?;
+        
+
+        // let bonding_curve = &mut self.bonding_curve;
+
+        // bonding_curve.set_inner(BondingCurve {
+        //     mint: bonding_curve.mint,
+        //     virtual_token_reserve: bonding_curve.virtual_token_reserve + amount,
+        //     virtual_sol_reserve: bonding_curve.virtual_sol_reserve - delta_s_after_fee,
+        //     real_token_reserve: bonding_curve.real_token_reserve + amount,
+        //     real_sol_reserve: bonding_curve.real_sol_reserve - delta_s_after_fee,
+        //     token_total_supply: bonding_curve.token_total_supply,
+        //     complete: s_new >= COMPLETION_LAMPORTS,
+        //     // total_tokens_sold: t_new,
+        //     // total_lamports_spent: s_new,
+        //     initializer: bonding_curve.initializer,
+        //     bump: bonding_curve.bump,
+        //     vault_bump: bonding_curve.vault_bump,
+        //     _padding: [0; 7],
+        // });
 
         Ok(())
     }

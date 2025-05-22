@@ -7,7 +7,7 @@ use anchor_spl::{
     token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
 };
 
-use crate::{compute_s, compute_s_in, errors::Errors, BondingCurve, Global, TokenPurchased, BONDING_CURVE, COMPLETION_LAMPORTS, CURVE_VAULT, GLOBAL};
+use crate::{compute_s_in, errors::Errors, BondingCurve, Global, TokenPurchased, BONDING_CURVE, COMPLETION_LAMPORTS, CURVE_VAULT, GLOBAL};
 
 #[derive(Accounts)]
 pub struct Buy <'info> {

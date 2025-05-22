@@ -584,7 +584,7 @@ describe("pumpg", async () => {
 
   })
 
-  xit("Dev sell all", async ()=>{
+  it("Dev sell all", async ()=>{
     const initalSOl = await connection.getBalance(coindev.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -628,14 +628,14 @@ describe("pumpg", async () => {
     console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
 
     const FinalFee = await connection.getBalance(admin.publicKey);
-    console.log("final fee",FinalFee);
+    console.log("final fee",FinalFee/LAMPORTS_PER_SOL);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
     const finalVaultSOl = await connection.getBalance(vault);
-    console.log("final vault : ", finalVaultSOl);
+    console.log("final vault : ", finalVaultSOl/LAMPORTS_PER_SOL);
 
-    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+    console.log("valut sol transferred :", (vaultSOL - finalVaultSOl)/LAMPORTS_PER_SOL);
 
 
     // try {
@@ -686,7 +686,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  xit("buyer 2 sell all", async ()=>{
+  it("buyer 2 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer2.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -737,26 +737,26 @@ describe("pumpg", async () => {
     console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
 
     const FinalFee = await connection.getBalance(admin.publicKey);
-    console.log("final fee",FinalFee);
+    console.log("final fee",FinalFee/LAMPORTS_PER_SOL);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
     const finalVaultSOl = await connection.getBalance(vault);
-    console.log("final vault : ", finalVaultSOl);
+    console.log("final vault : ", finalVaultSOl/LAMPORTS_PER_SOL);
 
-    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+    console.log("valut sol transferred :", (vaultSOL - finalVaultSOl)/LAMPORTS_PER_SOL);
 
     console.log("--------------------------------- end of tx")
   })
-  xit("buyer1 sell all", async ()=>{
+  it("buyer1 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
     const initalFee = await connection.getBalance(admin.publicKey);
-    console.log("inital fee",initalFee);
+    console.log("inital fee",initalFee/LAMPORTS_PER_SOL);
 
     const vaultSOL = await connection.getBalance(vault);
-    console.log("initial vault : ", vaultSOL);
+    console.log("initial vault : ", vaultSOL/LAMPORTS_PER_SOL);
 
     const amount = new anchor.BN(84_680_000_000_000); // 1 M token as decimal = 6
     const minSolOutput = new anchor.BN(2_500_000_000);
@@ -799,14 +799,14 @@ describe("pumpg", async () => {
     console.log("sol received: ",(finalSOl - initalSOl)/LAMPORTS_PER_SOL);
 
     const FinalFee = await connection.getBalance(admin.publicKey);
-    console.log("final fee",FinalFee);
+    console.log("final fee",FinalFee/LAMPORTS_PER_SOL);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
     const finalVaultSOl = await connection.getBalance(vault);
-    console.log("final vault : ", finalVaultSOl);
+    console.log("final vault : ", finalVaultSOl/LAMPORTS_PER_SOL);
 
-    console.log("valut sol transferred :", vaultSOL - finalVaultSOl);
+    console.log("valut sol transferred :", (vaultSOL - finalVaultSOl)/LAMPORTS_PER_SOL);
 
     console.log("--------------------------------- end of tx")
   })

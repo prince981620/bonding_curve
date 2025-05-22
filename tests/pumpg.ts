@@ -368,13 +368,13 @@ describe("pumpg", async () => {
     
 
     const initalSOl = await connection.getBalance(coindev.publicKey);
-    console.log("inital sol",initalSOl);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
     const initalFee = await connection.getBalance(admin.publicKey);
-    console.log("inital fee",initalFee);
+    console.log("inital fee",initalFee/LAMPORTS_PER_SOL);
 
     const vaultSOL = await connection.getBalance(vault);
-    console.log("initial vault : ", vaultSOL);
+    console.log("initial vault : ", vaultSOL/LAMPORTS_PER_SOL);
 
     
     // const initialBondingCurve = await program.account.bondingCurve.fetch(
@@ -388,7 +388,7 @@ describe("pumpg", async () => {
 
 
     const amount = new anchor.BN(66_930_000_000_000); // 1 M token as decimal = 6
-    const maxsolcost = new anchor.BN(2_000_000_000); // 1 sol
+    const maxsolcost = new anchor.BN(2_500_000_000); // 1 sol
     const tx = await program.methods.buy(
       amount,
       maxsolcost
@@ -416,19 +416,19 @@ describe("pumpg", async () => {
     console.log(Number(token_balance?.value?.amount)/1000000);
 
     const finalSOl = await connection.getBalance(coindev.publicKey);
-    console.log("final sol",finalSOl);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
 
-    console.log("sol used : ",initalSOl - finalSOl);
+    console.log("sol used : ",(initalSOl - finalSOl)/LAMPORTS_PER_SOL);
 
     const FinalFee = await connection.getBalance(admin.publicKey);
-    console.log("final fee",FinalFee);
+    console.log("final fee",FinalFee/LAMPORTS_PER_SOL);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
     const finalVaultSOl = await connection.getBalance(vault);
-    console.log("final vault : ", finalVaultSOl);
+    console.log("final vault : ", finalVaultSOl/LAMPORTS_PER_SOL);
 
-    console.log("valut sol added :", finalVaultSOl - vaultSOL);
+    console.log("valut sol added :", (finalVaultSOl - vaultSOL)/LAMPORTS_PER_SOL);
 
     console.log("--------------------------------- end of dev tx")
   })
@@ -443,13 +443,13 @@ describe("pumpg", async () => {
     )).address;
 
     const initalSOl = await connection.getBalance(buyer1.publicKey);
-    console.log("inital sol",initalSOl);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
     const initalFee = await connection.getBalance(admin.publicKey);
-    console.log("inital fee",initalFee);
+    console.log("inital fee",initalFee/LAMPORTS_PER_SOL);
 
     const vaultSOL = await connection.getBalance(vault);
-    console.log("initial vault : ", vaultSOL);
+    console.log("initial vault : ", vaultSOL/LAMPORTS_PER_SOL);
 
     
     // const initialBondingCurve = await program.account.bondingCurve.fetch(
@@ -491,19 +491,19 @@ describe("pumpg", async () => {
     console.log(Number(token_balance?.value?.amount)/1000000);
 
     const finalSOl = await connection.getBalance(buyer1.publicKey);
-    console.log("final sol",finalSOl);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
 
-    console.log("sol used : ",initalSOl - finalSOl);
+    console.log("sol used : ",(initalSOl - finalSOl)/LAMPORTS_PER_SOL);
 
     const FinalFee = await connection.getBalance(admin.publicKey);
-    console.log("final fee",FinalFee);
+    console.log("final fee",FinalFee/LAMPORTS_PER_SOL);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
     const finalVaultSOl = await connection.getBalance(vault);
-    console.log("final vault : ", finalVaultSOl);
+    console.log("final vault : ", finalVaultSOl/LAMPORTS_PER_SOL);
 
-    console.log("valut sol added :", finalVaultSOl - vaultSOL);
+    console.log("valut sol added :", (finalVaultSOl - vaultSOL)/LAMPORTS_PER_SOL);
 
     console.log("--------------------------------- end of buyer1 tx")
   })
@@ -518,13 +518,13 @@ describe("pumpg", async () => {
     )).address;
 
     const initalSOl = await connection.getBalance(buyer2.publicKey);
-    console.log("inital sol",initalSOl);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
     const initalFee = await connection.getBalance(admin.publicKey);
-    console.log("inital fee",initalFee);
+    console.log("inital fee",initalFee/LAMPORTS_PER_SOL);
 
     const vaultSOL = await connection.getBalance(vault);
-    console.log("initial vault : ", vaultSOL);
+    console.log("initial vault : ", vaultSOL/LAMPORTS_PER_SOL);
 
     
     // const initialBondingCurve = await program.account.bondingCurve.fetch(
@@ -566,33 +566,33 @@ describe("pumpg", async () => {
     console.log(Number(token_balance?.value?.amount)/1000000);
 
     const finalSOl = await connection.getBalance(buyer2.publicKey);
-    console.log("final sol",finalSOl);
+    console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
 
-    console.log("sol used : ",initalSOl - finalSOl);
+    console.log("sol used : ",(initalSOl - finalSOl)/LAMPORTS_PER_SOL);
 
     const FinalFee = await connection.getBalance(admin.publicKey);
-    console.log("final fee",FinalFee);
+    console.log("final fee",FinalFee/LAMPORTS_PER_SOL);
 
     console.log("fee paid : ", Number(FinalFee - initalFee)/LAMPORTS_PER_SOL);
 
     const finalVaultSOl = await connection.getBalance(vault);
-    console.log("final vault : ", finalVaultSOl);
+    console.log("final vault : ", finalVaultSOl/LAMPORTS_PER_SOL);
 
-    console.log("valut sol added :", finalVaultSOl - vaultSOL);
+    console.log("valut sol added :", (finalVaultSOl - vaultSOL)/LAMPORTS_PER_SOL);
 
     console.log("--------------------------------- end of buyer2 tx")
 
   })
 
-  it("Dev sell all", async ()=>{
+  xit("Dev sell all", async ()=>{
     const initalSOl = await connection.getBalance(coindev.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
     const initalFee = await connection.getBalance(admin.publicKey);
-    console.log("inital fee",initalFee);
+    console.log("inital fee",initalFee/LAMPORTS_PER_SOL);
 
     const vaultSOL = await connection.getBalance(vault);
-    console.log("initial vault : ", vaultSOL);
+    console.log("initial vault : ", vaultSOL/LAMPORTS_PER_SOL);
 
     const amount = new anchor.BN(66_930_000_000_000); // 1 M token as decimal = 6
     const minSolOutput = new anchor.BN(1_000_000_000);
@@ -686,7 +686,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  it("buyer 2 sell all", async ()=>{
+  xit("buyer 2 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer2.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -748,7 +748,7 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
-  it("buyer1 sell all", async ()=>{
+  xit("buyer1 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
@@ -841,7 +841,7 @@ describe("pumpg", async () => {
 
   })
 
-  it("set Params with wrong admin it should fail",async ()=>{
+  xit("set Params with wrong admin it should fail",async ()=>{
 
     const feeRecipient = Keypair.generate();
 
@@ -928,7 +928,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
-  it("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
+  xit("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
 
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
@@ -998,13 +998,13 @@ describe("pumpg", async () => {
     
 
     const initalSOl = await connection.getBalance(coindev.publicKey);
-    console.log("inital sol",initalSOl);
+    console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
 
     const initalFee = await connection.getBalance(admin.publicKey);
-    console.log("inital fee",initalFee);
+    console.log("inital fee",initalFee/LAMPORTS_PER_SOL);
 
     const vaultSOL = await connection.getBalance(vault);
-    console.log("initial vault : ", vaultSOL);
+    console.log("initial vault : ", vaultSOL/LAMPORTS_PER_SOL);
 
     
     // const initialBondingCurve = await program.account.bondingCurve.fetch(

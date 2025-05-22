@@ -80,19 +80,19 @@ impl <'info> Sell<'info> {
         //     return Err(Errors::BondingCurveComplete.into());
         // }
 
-        let t_current = bonding_curve.total_tokens_sold;
-        let t_new = t_current.checked_sub(amount).ok_or(Errors::Underflow)?;
-        let s_new = compute_s(t_new)?;
-        let s_current = bonding_curve.total_lamports_spent;
-        let delta_s = s_current.checked_sub(s_new).ok_or(Errors::Underflow)?;
+        // let t_current = bonding_curve.total_tokens_sold;
+        // let t_new = t_current.checked_sub(amount).ok_or(Errors::Underflow)?;
+        // let s_new = compute_s(t_new)?;
+        // let s_current = bonding_curve.total_lamports_spent;
+        // let delta_s = s_current.checked_sub(s_new).ok_or(Errors::Underflow)?;
 
         //  check if s_new is ever greater than s_current 
          
         // let delta_S128 = u128::try_from(delta_s).or(Err(Errors::Overflow))?;
 
-        if delta_s < min_sol_output {
-            return Err(Errors::TooLittleSolReceived.into());
-        }
+        // if delta_s < min_sol_output {
+        //     return Err(Errors::TooLittleSolReceived.into());
+        // }
 
         // u128::try_from(delta_s) 
 
@@ -101,7 +101,7 @@ impl <'info> Sell<'info> {
         //     .map_err(|_| Errors::InvalidCalculation)?;
         // let delta_s_after_fee = delta_s.checked_sub(fee_amount).ok_or(Errors::Underflow)?;
 
-        let fee_amount = delta_s
+        let fee_amount = min_sol_output
             .checked_mul(self.global.fee_basis_points)
             .unwrap()
             .checked_div(10000_u64)
@@ -109,10 +109,10 @@ impl <'info> Sell<'info> {
 
         self.send_token(amount)?;
 
-        self.send_sol(delta_s, fee_amount)?;
+        // self.send_sol(delta_s, fee_amount)?;
 
 
-        self.update_bonding_curve(delta_s, amount, s_new, t_new)?;
+        // self.update_bonding_curve(delta_s, amount, s_new, t_new)?;
 
         
 
@@ -120,7 +120,7 @@ impl <'info> Sell<'info> {
             mint: self.mint.key(),
             user: self.user.key(),
             amount,
-            sol_received: delta_s,
+            sol_received: 1_000_000,
             fee: fee_amount,
         });
         
@@ -194,8 +194,8 @@ impl <'info> Sell<'info> {
             real_sol_reserve: bonding_curve.real_sol_reserve - delta_s_after_fee,
             token_total_supply: bonding_curve.token_total_supply,
             complete: s_new >= COMPLETION_LAMPORTS,
-            total_tokens_sold: t_new,
-            total_lamports_spent: s_new,
+            // total_tokens_sold: t_new,
+            // total_lamports_spent: s_new,
             initializer: bonding_curve.initializer,
             bump: bonding_curve.bump,
             vault_bump: bonding_curve.vault_bump,

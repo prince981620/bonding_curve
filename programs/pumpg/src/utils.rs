@@ -49,44 +49,44 @@ pub fn compute_S(T: u64) -> Result<u64, Errors> {
 */
 
 
-pub fn compute_s(t: u64) -> Result<u64, Errors> {
-    let p_u128 = u128::try_from(P).or(Err(Errors::Overflow))?;
-    let scale_u128 = u128::try_from(SCALE).or(Err(Errors::Overflow))?;
-    let p_scaled: u128 = p_u128.checked_mul(scale_u128).ok_or(Errors::Overflow)?;
+// pub fn compute_s(t: u64) -> Result<u64, Errors> {
+//     let p_u128 = u128::try_from(P).or(Err(Errors::Overflow))?;
+//     let scale_u128 = u128::try_from(SCALE).or(Err(Errors::Overflow))?;
+//     let p_scaled: u128 = p_u128.checked_mul(scale_u128).ok_or(Errors::Overflow)?;
 
-    let t_u128 = u128::try_from(t).or(Err(Errors::Overflow))?;
+//     let t_u128 = u128::try_from(t).or(Err(Errors::Overflow))?;
     
-    // Prevent underflow by ensuring t <= p_scaled
-    if t_u128 > p_scaled {
-        return Err(Errors::InvalidCalculation.into());
-    }
+//     // Prevent underflow by ensuring t <= p_scaled
+//     if t_u128 > p_scaled {
+//         return Err(Errors::InvalidCalculation.into());
+//     }
 
-    let denominator: u128 = p_scaled.checked_sub(t_u128).ok_or(Errors::Underflow)?;
+//     let denominator: u128 = p_scaled.checked_sub(t_u128).ok_or(Errors::Underflow)?;
     
-    if denominator == 0 {
-        return Err(Errors::InvalidCalculation.into());
-    }
+//     if denominator == 0 {
+//         return Err(Errors::InvalidCalculation.into());
+//     }
 
-    let q_u128 = u128::try_from(Q).or(Err(Errors::Overflow))?;
-    let numerator: u128 = q_u128.checked_mul(scale_u128).ok_or(Errors::Overflow)?;
-    let lamports_per_sol_u128 = u128::try_from(LAMPORTS_PER_SOL).or(Err(Errors::Overflow))?;
+//     let q_u128 = u128::try_from(Q).or(Err(Errors::Overflow))?;
+//     let numerator: u128 = q_u128.checked_mul(scale_u128).ok_or(Errors::Overflow)?;
+//     let lamports_per_sol_u128 = u128::try_from(LAMPORTS_PER_SOL).or(Err(Errors::Overflow))?;
 
-    let numerator_lamp: u128 = numerator.checked_mul(lamports_per_sol_u128).ok_or(Errors::Overflow)?;
+//     let numerator_lamp: u128 = numerator.checked_mul(lamports_per_sol_u128).ok_or(Errors::Overflow)?;
 
-    let part1: u128 = numerator_lamp.checked_div(denominator).ok_or(Errors::Overflow)?;
+//     let part1: u128 = numerator_lamp.checked_div(denominator).ok_or(Errors::Overflow)?;
 
-    let r_u128 = u128::try_from(R).or(Err(Errors::Overflow))?;
+//     let r_u128 = u128::try_from(R).or(Err(Errors::Overflow))?;
 
-    let r_term = r_u128
-        .checked_mul(lamports_per_sol_u128)
-        .ok_or(Errors::Overflow)?;
+//     let r_term = r_u128
+//         .checked_mul(lamports_per_sol_u128)
+//         .ok_or(Errors::Overflow)?;
 
-    let s: u128 = part1
-        .checked_sub(r_term)
-        .ok_or(Errors::Underflow)?;
+//     let s: u128 = part1
+//         .checked_sub(r_term)
+//         .ok_or(Errors::Underflow)?;
 
-    Ok(s as u64)
-}
+//     Ok(s as u64)
+// }
 
 pub fn compute_s_in(v_token_reserve: u64, v_sol_reserve: u64, t_out : u64) -> Result<u64, Errors> {
     let v_token_128 = u128::try_from(v_token_reserve).or(Err(Errors::Overflow))?;

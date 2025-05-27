@@ -354,6 +354,18 @@ describe("pumpg", async () => {
 
     console.log("create tx", tx);
 
+        // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
+
+
   })
 
   it("Dev buy coin", async ()=> {
@@ -431,6 +443,41 @@ describe("pumpg", async () => {
     console.log("valut sol added :", (finalVaultSOl - vaultSOL)/LAMPORTS_PER_SOL);
 
     console.log("--------------------------------- end of dev tx")
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
+
+  })
+
+  it("get bondig curve state", async()=>{
+    console.log("mint:",mintadd.publicKey)
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
   })
 
   it("buyer1 buy coin", async ()=> {
@@ -508,6 +555,28 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of buyer1 tx")
   })
 
+  it("get bondig curve state", async()=>{
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
+  })
+
   it("buyer2 buy coin", async ()=> {
 
     const buyer2_ata = (await getOrCreateAssociatedTokenAccount(
@@ -582,6 +651,28 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of buyer2 tx")
 
+  })
+
+  it("get bondig curve state", async()=>{
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
   })
 
   it("Dev sell all", async ()=>{
@@ -686,6 +777,29 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
+
+  it("get bondig curve state", async()=>{
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
+  })
+
   it("buyer 2 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer2.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
@@ -748,6 +862,30 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
   })
+
+  it("get bondig curve state", async()=>{
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
+  })
+
+
   it("buyer1 sell all", async ()=>{
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
@@ -811,6 +949,29 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
+
+  it("get bondig curve state", async()=>{
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
+  })
+
   xit("set Params",async ()=>{
 
     const feeRecipient = Keypair.generate();
@@ -841,7 +1002,7 @@ describe("pumpg", async () => {
 
   })
 
-  xit("set Params with wrong admin it should fail",async ()=>{
+  it("set Params with wrong admin it should fail",async ()=>{
 
     const feeRecipient = Keypair.generate();
 
@@ -928,7 +1089,7 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
-  xit("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
+  it("failed withdraw sol and token for cpi to radium by non admin", async ()=>{
 
     const initalSOl = await connection.getBalance(buyer1.publicKey);
     console.log("inital sol",initalSOl/LAMPORTS_PER_SOL);
@@ -986,7 +1147,7 @@ describe("pumpg", async () => {
 
       })
 
-  it("Dev buy coin again", async ()=> {
+  it("Dev buy coin again to migrate", async ()=> {
 
     devAta = (await getOrCreateAssociatedTokenAccount(
       connection,
@@ -1063,6 +1224,28 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of dev tx")
   })
 
+  it("get bondig curve state", async()=>{
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
+  })
+
   it("transfer and wrap sol", async ()=>{
 
     admin_ata = (await getOrCreateAssociatedTokenAccount(
@@ -1106,6 +1289,28 @@ describe("pumpg", async () => {
 
     console.log("--------------------------------- end of tx")
 
+  })
+
+  it("get bondig curve state", async()=>{
+    const mint = new anchor.web3.PublicKey(mintadd.publicKey);
+
+    const bonding_curve = PublicKey.findProgramAddressSync(
+      [Buffer.from(BONDING_CURVE), mint.toBuffer()],
+      program.programId
+    )[0];
+
+    console.log("bonding curve pda:", bonding_curve);
+
+    // get initial bonding curve
+    const initialBondingCurve_acc = await program.account.bondingCurve.fetch(
+      bonding_curve
+    );
+    
+    console.log("initial bonding curve  real sol-> ", (initialBondingCurve_acc.realSolReserve.toNumber())/LAMPORTS_PER_SOL); // 0
+    console.log("initial bonding curve  virtual sol-> ", (initialBondingCurve_acc.virtualSolReserve.toNumber())/LAMPORTS_PER_SOL); // 30
+    console.log("initial bonding curve  real token-> ", (initialBondingCurve_acc.realTokenReserve.toNumber())/1000000); // 793100000000000
+    console.log("initial bonding curve  virtual token -> ", (initialBondingCurve_acc.virtualTokenReserve.toNumber())/1000000); // 30
+    console.log("initial bonding curve  total token suppy-> ", (initialBondingCurve_acc.tokenTotalSupply.toNumber())/1000000); // 30
   })
 
   it("Migrate to Raydium", async()=>{

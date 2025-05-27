@@ -6,6 +6,7 @@ pub mod sell;
 pub mod withdraw;
 pub mod migrate;
 pub mod transfer_bonding_sol;
+// pub mod sega_pool;
 // pub mod lock_cpmm_lp;
 
 pub use initialize::*;
@@ -16,4 +17,5 @@ pub use sell::*;
 pub use withdraw::*;
 pub use migrate::*;
 pub use transfer_bonding_sol::*;
+// pub use sega_pool::*;
 // pub use lock_cpmm_lp::*;

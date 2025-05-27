@@ -34,6 +34,8 @@ pub const DEFAULT_DECIMALS: u8 = 6;
 
 pub const DEFAULT_SUPPLY: u64 = 206_900_000_000_000;
 
+pub const LOCK_CPMM_AUTHORITY: Pubkey = solana_program::pubkey!("3f7GcQFG397GAaEnv51zR6tsTVihYRydnydDD1cXekxH");
+
 /*
 
 pub const DAO_SEED: &[u8] = b"dao_account";

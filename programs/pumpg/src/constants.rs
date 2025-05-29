@@ -40,6 +40,8 @@ pub const POOL_VAULT_SEED: &str = "pool_vault";
 pub const OBSERVATION_SEED: &str = "observation";
 pub const AMM_CONFIG_SEED: &str = "amm_config";
 
+pub const AUTH_SEED: &str = "vault_and_lp_mint_auth_seed";
+
 pub const LOCK_CPMM_AUTHORITY: Pubkey = solana_program::pubkey!("3f7GcQFG397GAaEnv51zR6tsTVihYRydnydDD1cXekxH");
 
 /*

@@ -14,12 +14,11 @@ use sega_cp_swap::{
     accounts::AmmConfig
 };
 
-use crate::{errors::Errors, BondingCurve, Global, BONDING_CURVE, DEFAULT_DECIMALS, GLOBAL, OBSERVATION_SEED, POOL_LP_MINT_SEED, POOL_SEED, POOL_VAULT_SEED, WSOL_ID};
+use crate::{errors::Errors, BondingCurve, Global, AUTH_SEED, BONDING_CURVE, DEFAULT_DECIMALS, GLOBAL, OBSERVATION_SEED, POOL_LP_MINT_SEED, POOL_SEED, POOL_VAULT_SEED, WSOL_ID};
 
 
 #[derive(Accounts)]
 pub struct InitialiseSegaPool <'info> {
-    pub cp_swap_program: Program <'info, SegaCpSwap>,
 
     #[account(
         mut,
@@ -27,19 +26,58 @@ pub struct InitialiseSegaPool <'info> {
     )]
     pub authority: Signer<'info>, // creator
 
+    pub amm_config: Box<Account<'info, AmmConfig>>,
+
+    /// CHECK: pool vault and lp mint authority
+    #[account(
+        seeds = [
+        AUTH_SEED.as_bytes(),
+        ],
+        seeds::program = cp_swap_program.key(),
+        bump,
+    )]
+    pub radium_authority: UncheckedAccount<'info>, //authority
+
+    /// CHECK: Initialize an account to store the pool state, init by cp-swap
+    #[account(
+        mut,
+        seeds = [
+            POOL_SEED.as_bytes(),
+            amm_config.key().as_ref(),
+            base_mint.key().as_ref(),
+            mint.key().as_ref(),
+        ],
+        seeds::program = cp_swap_program.key(),
+        bump,
+    )]
+    pub pool_state: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        address = WSOL_ID,
+        mint::decimals = 9,
+        // mint::token_program = token_program,
+    )]
+    pub base_mint: Account<'info, Mint>,
+
     #[account(
         mint::decimals = DEFAULT_DECIMALS,
         mint::token_program = token_program,
     )]
     pub mint: Account<'info, Mint>,
 
+    /// CHECK: pool lp mint, init by cp-swap
     #[account(
         mut,
-        address = WSOL_ID,
-        mint::decimals = 9,
-        mint::token_program = token_program,
+        seeds = [
+            POOL_LP_MINT_SEED.as_bytes(),
+            pool_state.key().as_ref(),
+        ],
+        seeds::program = cp_swap_program.key(),
+        bump,
     )]
-    pub base_mint: Account<'info, Mint>,
+    pub lp_mint: UncheckedAccount<'info>,
+
 
     #[account(
         mut,
@@ -55,44 +93,6 @@ pub struct InitialiseSegaPool <'info> {
         token::token_program = token_program    
     )]
     pub creater_token_ata: Account<'info, TokenAccount>, // token ata
-
-    pub amm_config: Box<Account<'info, AmmConfig>>,
-
-    /// CHECK: pool vault and lp mint authority
-    #[account(
-        seeds = [
-            raydium_cpmm_cpi::AUTH_SEED.as_bytes(),
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub radium_authority: UncheckedAccount<'info>,
-    
-    /// CHECK: Initialize an account to store the pool state, init by cp-swap
-    #[account(
-        mut,
-        seeds = [
-            POOL_SEED.as_bytes(),
-            amm_config.key().as_ref(),
-            base_mint.key().as_ref(),
-            mint.key().as_ref(),
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub pool_state: UncheckedAccount<'info>,
-
-    /// CHECK: pool lp mint, init by cp-swap
-    #[account(
-        mut,
-        seeds = [
-            POOL_LP_MINT_SEED.as_bytes(),
-            pool_state.key().as_ref(),
-        ],
-        seeds::program = cp_swap_program.key(),
-        bump,
-    )]
-    pub lp_mint: UncheckedAccount<'info>,
 
     /// CHECK: creator lp ATA token account, init by cp-swap
     #[account(mut)]
@@ -123,12 +123,10 @@ pub struct InitialiseSegaPool <'info> {
         bump,
     )]
     pub token_1_vault: UncheckedAccount<'info>,
-
-    #[account(
-        mut,
-        address= raydium_cpmm_cpi::create_pool_fee_reveiver::id(),
-    )]
-    pub create_pool_fee: Box<Account<'info, TokenAccount>>,
+    
+    /// CHECK
+    #[account(mut)]
+    pub create_pool_fee: AccountInfo<'info>,
 
     /// CHECK: an account to store oracle observations, init by cp-swap
      #[account(
@@ -162,8 +160,8 @@ pub struct InitialiseSegaPool <'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>
-    
+    pub rent: Sysvar<'info, Rent>,
+    pub cp_swap_program: Program <'info, SegaCpSwap>,
 
 }
 
@@ -202,7 +200,7 @@ impl <'info> InitialiseSegaPool <'info> {
         );
 
         cpi::initialize(cpi_context, init_amount_0, init_amount_1, open_time)
-        
+
     }
     
 }

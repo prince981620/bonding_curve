@@ -34,10 +34,12 @@ impl<'info> Initialize<'info> {
             fee_basis_points: 100,
             bump: bump.global,
         });
+
         emit!(Initialized {
             authority: self.user.key(),
             fee_recipient: self.user.key(),
         });
+
         Ok(())
     }
 }

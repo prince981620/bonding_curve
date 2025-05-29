@@ -72,8 +72,12 @@ pub mod pumpg {
         ctx.accounts.prepare_for_migration()
     }
 
-    pub fn migrate(ctx: Context<CreateCpmmPool>) -> Result<()> {
-        ctx.accounts.create_cpmm_pool()
+    // pub fn migrate(ctx: Context<CreateCpmmPool>) -> Result<()> {
+    //     ctx.accounts.create_cpmm_pool()
+    // }
+
+    pub fn migrate_sega(ctx: Context<InitialiseSegaPool>) -> Result<()> {
+        ctx.accounts.create_sega_pool()
     }
 
 }

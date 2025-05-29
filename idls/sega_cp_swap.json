@@ -858,10 +858,11 @@
         },
         {
           "name": "create_pool_fee",
+          "writable": true,
           "docs": [
             "create pool fee account"
           ],
-          "address": "2HbjxVVKJ7Ct72Rcd8WK4VTqmwTXL5aAggkH1CHGFGmh"
+          "address": "BLxynZeHE123MmQgNJZiV1pwW4VYh46oZYyC66xwmtTY"
         },
         {
           "name": "observation_state",

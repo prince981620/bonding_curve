@@ -34,6 +34,12 @@ pub const DEFAULT_DECIMALS: u8 = 6;
 
 pub const DEFAULT_SUPPLY: u64 = 206_900_000_000_000;
 
+pub const POOL_SEED: &str = "pool";
+pub const POOL_LP_MINT_SEED: &str = "pool_lp_mint";
+pub const POOL_VAULT_SEED: &str = "pool_vault";
+pub const OBSERVATION_SEED: &str = "observation";
+pub const AMM_CONFIG_SEED: &str = "amm_config";
+
 pub const LOCK_CPMM_AUTHORITY: Pubkey = solana_program::pubkey!("3f7GcQFG397GAaEnv51zR6tsTVihYRydnydDD1cXekxH");
 
 /*

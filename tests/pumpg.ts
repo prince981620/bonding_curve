@@ -137,6 +137,7 @@ describe("pumpg", async () => {
   let bonding_curve: PublicKey;
   let vault: PublicKey;
   let bonding_curve_ata: PublicKey;
+  let bonding_curve_wsol_ata: PublicKey;
   let metadata: PublicKey;
   let devAta: PublicKey;
   let buyer1Ata: PublicKey;
@@ -253,7 +254,10 @@ describe("pumpg", async () => {
     console.log("mint", mint);
 
     bonding_curve_ata = await getAssociatedTokenAddress(mint, bonding_curve, true);
-  
+
+    bonding_curve_wsol_ata = await getAssociatedTokenAddress(WSOL_ID, bonding_curve, true);
+    
+    console.log("bonding curve wsol ata : ", bonding_curve_wsol_ata.toBase58());
     metadata = PublicKey.findProgramAddressSync(
       [
         Buffer.from("metadata"),
@@ -1262,6 +1266,13 @@ describe("pumpg", async () => {
       admin.publicKey
     )).address;
 
+  // bonding_curve_wsol_ata = getAssociatedTokenAddressSync(
+  //     WSOL_ID,
+  //     bonding_curve,
+  //     true,
+  //   );
+
+
     let tx = await program.methods
           .transferAndWrapSol()
           .accountsStrict({
@@ -1270,11 +1281,12 @@ describe("pumpg", async () => {
             feeRecipient: fee_receipent,
             bondingCurve: bonding_curve,
             vault: vault,
-            bondingCurveAta: bonding_curve_ata,
-            userWsolAta: admin_wsol_ata,
-            userAta: admin_ata,
+            bondingCurveWsolAta:bonding_curve_wsol_ata,
+            // bonding_curve_wsol_ata: bonding_curve_wsol_ata,
+            // userWsolAta: admin_wsol_ata,
+            // userAta: admin_ata,
             wsolMint: WSOL_ID,
-            mint: mint,
+            // mint: mint,
             tokenProgram: TOKEN_PROGRAM_ID,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             systemProgram: anchor.web3.SystemProgram.programId
@@ -1456,6 +1468,8 @@ describe("pumpg", async () => {
       CPMM_PROGRAM_ID
     )[0];
 
+
+
     console.log({
             "cpSwapProgram": CPMM_PROGRAM_ID,
             "authority": admin.publicKey,
@@ -1480,6 +1494,11 @@ describe("pumpg", async () => {
             "rent": anchor.web3.SYSVAR_RENT_PUBKEY
     })
 
+
+
+    const initialSol = await connection.getBalance(admin.publicKey);
+    console.log("final sol",initialSol/LAMPORTS_PER_SOL);
+
     try {
           let tx = await program.methods
           .migrateSega()
@@ -1488,8 +1507,8 @@ describe("pumpg", async () => {
             authority: admin.publicKey,
             mint: mint,
             baseMint: WSOL_ID,
-            creatorBaseAta: admin_wsol_ata,
-            createrTokenAta: admin_ata,
+            bondingCurveWsolAta: bonding_curve_wsol_ata,
+            bondingCurveAta: bonding_curve_ata,
             ammConfig: AMM_CONFIG_ID,
             radiumAuthority: raydium_authority,
             poolState: pool_state,
@@ -1512,6 +1531,14 @@ describe("pumpg", async () => {
           // await provider.sendAndConfirm(tx);
 
           console.log("Sega migration tx :", tx);
+          const lpTOken = await connection.getTokenAccountBalance(admin_lp_ata);
+          console.log("Lp tokens received",Number(lpTOken.value.amount)/LAMPORTS_PER_SOL);
+
+          const finalSOl = await connection.getBalance(admin.publicKey);
+          console.log("final sol",finalSOl/LAMPORTS_PER_SOL);
+
+          console.log("SOL Used", (initialSol - finalSOl)/LAMPORTS_PER_SOL)
+
     }catch(e){
       console.log("Error ::" , e);
     }

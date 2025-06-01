@@ -78,21 +78,42 @@ pub struct InitialiseSegaPool <'info> {
     )]
     pub lp_mint: UncheckedAccount<'info>,
 
-
     #[account(
         mut,
         associated_token::mint = base_mint,
-        associated_token::authority  = authority,
+        associated_token::authority = bonding_curve    
     )]
-    pub creator_base_ata: Box<Account<'info, TokenAccount>>,
+    pub bonding_curve_wsol_ata: Account<'info, TokenAccount>,
 
+
+    // #[account(
+    //     mut,
+    //     associated_token::mint = base_mint,
+    //     associated_token::authority  = authority,
+    // )]
+    // pub creator_base_ata: Box<Account<'info, TokenAccount>>,
+
+    // #[account(
+    //     mut,
+    //     associated_token::mint = mint,
+    //     associated_token::authority = bonding_curve,
+    // )]
+    // pub creater_token_ata: Account<'info, TokenAccount>,
+    
     #[account(
         mut,
-        token::mint = mint,
-        token::authority = authority,
-        token::token_program = token_program    
+        associated_token::mint = mint,
+        associated_token::authority = bonding_curve,
     )]
-    pub creater_token_ata: Account<'info, TokenAccount>, // token ata
+    pub bonding_curve_ata: Account<'info, TokenAccount>,
+
+    // #[account(
+    //     mut,
+    //     token::mint = mint,
+    //     token::authority = authority,
+    //     token::token_program = token_program    
+    // )]
+    // pub creater_token_ata: Account<'info, TokenAccount>, // token ata
 
     /// CHECK: creator lp ATA token account, init by cp-swap
     #[account(mut)]
@@ -167,20 +188,20 @@ pub struct InitialiseSegaPool <'info> {
 
 impl <'info> InitialiseSegaPool <'info> {
     pub fn create_sega_pool(&mut self) -> Result<()> {
-        let init_amount_0 = self.creator_base_ata.amount;
-        let init_amount_1 = self.creater_token_ata.amount;
+        let init_amount_0 = self.bonding_curve_wsol_ata.amount;
+        let init_amount_1 = self.bonding_curve_ata.amount;
         let open_time = Clock::get()?.unix_timestamp as u64;
 
         let accounts = cpi::accounts::Initialize{
-            creator: self.authority.to_account_info(),
+            creator: self.bonding_curve.to_account_info(),
             amm_config: self.amm_config.to_account_info(),
             authority: self.radium_authority.to_account_info(),
             pool_state: self.pool_state.to_account_info(),
             token_0_mint: self.base_mint.to_account_info(),
             token_1_mint: self.mint.to_account_info(),
             lp_mint: self.lp_mint.to_account_info(),
-            creator_token_0: self.creator_base_ata.to_account_info(),
-            creator_token_1: self.creater_token_ata.to_account_info(),
+            creator_token_0: self.bonding_curve_wsol_ata.to_account_info(),
+            creator_token_1: self.bonding_curve_ata.to_account_info(),
             creator_lp_token: self.creator_lp_token.to_account_info(),
             token_0_vault: self.token_0_vault.to_account_info(),
             token_1_vault: self.token_1_vault.to_account_info(),

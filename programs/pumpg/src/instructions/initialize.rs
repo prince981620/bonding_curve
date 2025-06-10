@@ -25,6 +25,7 @@ impl<'info> Initialize<'info> {
     pub fn initialize_global(&mut self, bump: &InitializeBumps) -> Result<()> {
         self.global.set_inner(Global {
             initialized: true,
+            paused: false,
             authority: self.user.key(),
             fee_recipient: self.user.key(),
             initial_virtual_token_reserves: P * SCALE,

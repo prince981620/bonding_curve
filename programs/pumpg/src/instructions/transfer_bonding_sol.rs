@@ -19,6 +19,7 @@ pub struct TransferSol  <'info> {
         bump = global.bump,
         has_one = authority,
         has_one = fee_recipient,
+        constraint = matches!(global.paused, false) @ Errors::ContractPaused,
     )]
     pub global: Account<'info, Global>,
 

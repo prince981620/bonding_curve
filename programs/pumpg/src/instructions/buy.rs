@@ -18,6 +18,7 @@ pub struct Buy <'info> {
     #[account(
         seeds = [GLOBAL],
         bump = global.bump,
+        constraint = matches!(global.paused, false) @ Errors::ContractPaused,
     )]
     pub global: Account<'info, Global>,
 

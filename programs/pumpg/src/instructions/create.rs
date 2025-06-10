@@ -9,7 +9,7 @@ use anchor_spl::{associated_token::AssociatedToken, metadata::{
     },
     Metadata,
 }, token::{self, Mint, Token, TokenAccount}};
-use crate::constants::*;
+use crate::{constants::*, errors::Errors};
 use crate::state::{BondingCurve, Global};
 use crate::events::TokenCreated;
 
@@ -50,8 +50,13 @@ pub struct Create<'info> {
     )]
     pub bonding_curve_ata: Account<'info, TokenAccount>, // this will stroe the mint tokens
 
-    #[account(seeds = [GLOBAL], bump=global.bump)]
+    #[account(
+        seeds = [GLOBAL],
+        bump=global.bump,
+        constraint = matches!(global.paused, false) @ Errors::ContractPaused,
+    )]
     pub global: Account<'info, Global>,
+
     /// CHECK: New Metaplex Account being created
     #[account(mut)]
     pub metadata: UncheckedAccount<'info>, // pub metadata: AccountInfo<'info>, if this anything got wrong

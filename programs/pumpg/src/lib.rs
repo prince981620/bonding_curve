@@ -45,6 +45,14 @@ pub mod pumpg {
         )
     }
 
+    pub fn pause_contract(ctx: Context<PauseContract>) -> Result<()> {
+        ctx.accounts.pause_contract()
+    }
+
+    pub fn unpause_contract(ctx: Context<UnPauseContract>) -> Result<()> {
+        ctx.accounts.unpause_contract()
+    }
+
     pub fn create(ctx: Context<Create>,name: String, symbol: String, uri: String) -> Result<()> {
         ctx.accounts.create_token(
             name,

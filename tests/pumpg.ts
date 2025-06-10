@@ -778,6 +778,44 @@ describe("pumpg", async () => {
     console.log("--------------------------------- end of tx")
   })
 
+  xit("Pause Contract", async ()=>{
+    const tx = await program.methods
+    .pauseContract()
+    .accountsStrict({
+      global: global,
+      user: admin.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([admin])
+    .rpc()
+
+    console.log("contract is pause, here is tx :", tx);
+
+    const gloabal_account = await program.account.global.fetch(
+      global
+    );
+    console.log("paused :", gloabal_account.paused)
+  })
+
+  xit("Un Pause Contract", async ()=>{
+    const tx = await program.methods
+    .unpauseContract()
+    .accountsStrict({
+      global: global,
+      user: admin.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([admin])
+    .rpc()
+
+    console.log("contract is pause, here is tx :", tx);
+
+    const gloabal_account = await program.account.global.fetch(
+      global
+    );
+    console.log("paused :", gloabal_account.paused)
+  })
+
   it("get bondig curve state", async()=>{
     const mint = new anchor.web3.PublicKey(mintadd.publicKey);
 

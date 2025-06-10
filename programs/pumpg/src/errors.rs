@@ -22,4 +22,7 @@ pub enum Errors {
     InvalidCalculation,
     #[msg("Invalid Fee Account")]
     InvalidFeeAccount,
+    #[msg("Contract is Paused for security Purpose")]
+    ContractPaused,
+
 }

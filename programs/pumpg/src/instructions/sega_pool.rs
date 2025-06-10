@@ -145,6 +145,7 @@ pub struct InitialiseSegaPool <'info> {
         seeds = [GLOBAL],
         bump = global.bump,
         has_one = authority,
+        constraint = matches!(global.paused, false) @ Errors::ContractPaused,
     )]
     pub global: Account<'info, Global>,
 

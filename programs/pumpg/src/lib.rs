@@ -13,7 +13,7 @@ pub use state::*;
 pub use events::*;
 pub use utils::*;
 
-declare_id!("DEL6k9XvGhuahkBUpn1XNYb8PsKqa6Ja6ya1YK4HehpW");
+declare_id!("DADtiPM9Jgr53UWxVDUnA7WzBNFj5itGQ8ZamJpSnnGL");
 
 #[program]
 pub mod pumpg {
@@ -72,20 +72,20 @@ pub mod pumpg {
         ctx.accounts.sell_tokens(amount, min_sol_output)
     }
 
-    pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
-        ctx.accounts.withdraw_funds()
-    }
+    // pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
+    //     ctx.accounts.withdraw_funds()
+    // }
 
-    pub fn transfer_and_wrap_sol(ctx: Context<TransferSol>) -> Result<()> {
-        ctx.accounts.prepare_for_migration()
-    }
+    // pub fn transfer_and_wrap_sol(ctx: Context<TransferSol>) -> Result<()> {
+    //     ctx.accounts.prepare_for_migration()
+    // }
 
     // pub fn migrate(ctx: Context<CreateCpmmPool>) -> Result<()> {
     //     ctx.accounts.create_cpmm_pool()
     // }
 
-    pub fn migrate_sega(ctx: Context<InitialiseSegaPool>) -> Result<()> {
-        ctx.accounts.create_sega_pool()
-    }
+    // pub fn migrate_sega(ctx: Context<InitialiseSegaPool>) -> Result<()> {
+    //     ctx.accounts.create_sega_pool()
+    // }
 
 }

@@ -5,15 +5,14 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-pumpg = "DEL6k9XvGhuahkBUpn1XNYb8PsKqa6Ja6ya1YK4HehpW"
+[programs.devnet]
+pumpg = "DADtiPM9Jgr53UWxVDUnA7WzBNFj5itGQ8ZamJpSnnGL"
 
 [registry]
-url = "https://api.apr.dev"
+url = "https://api.testnet.sonic.game"
 
 [provider]
-cluster = "localnet"
-# cluster = "https://few-twilight-wish.solana-devnet.quiknode.pro/5337a237aaeecd58b8c43a375c78a541aafccf04"
+cluster = "https://api.testnet.sonic.game"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
@@ -26,7 +25,6 @@ upgradeable = false
 
 [test.validator]
 bind_address = "0.0.0.0"
-# url = "https://api.mainnet-beta.solana.com"
 url = "https://few-twilight-wish.solana-mainnet.quiknode.pro/5337a237aaeecd58b8c43a375c78a541aafccf04"
 ledger = ".anchor/test-ledger"
 rpc_port = 8899
@@ -53,13 +51,13 @@ address = "3f7GcQFG397GAaEnv51zR6tsTVihYRydnydDD1cXekxH"
 address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 
 [[test.validator.clone]]
-address = "SegaXNnoXYTZiqUt9Xn2XqGcL56b25yzXLuJSpadcMu" # sega cpmm program
+address = "SegaXNnoXYTZiqUt9Xn2XqGcL56b25yzXLuJSpadcMu"
 
 [[test.validator.clone]]
 address = "2t1hV2YqnDCPuJZqr7Fy8oAygGwZE5Q9uaQzpLC1QryJ"
 
 [[test.validator.clone]]
-address = "BLxynZeHE123MmQgNJZiV1pwW4VYh46oZYyC66xwmtTY" # sonic create pool fee
+address = "BLxynZeHE123MmQgNJZiV1pwW4VYh46oZYyC66xwmtTY"
 
 [[test.validator.clone]]
 address = "3EM1DkCX88fwm5iCVquSFvhHpFxozCmfcqtN9RVgPebN"
@@ -75,6 +73,3 @@ address = "BjZxF9CnEuR1vxXffJwun81i3Doe2C2vQCdJpShxCieM"
 
 [[test.validator.clone]]
 address = "BLxynZeHE123MmQgNJZiV1pwW4VYh46oZYyC66xwmtTY"
-
-# [[test.validator.clone]]
-# address = "2HbjxVVKJ7Ct72Rcd8WK4VTqmwTXL5aAggkH1CHGFGmh"
